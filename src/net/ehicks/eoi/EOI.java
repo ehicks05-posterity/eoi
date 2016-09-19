@@ -32,7 +32,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         return null;
@@ -50,7 +50,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return 0;
     }
@@ -64,7 +64,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -132,7 +132,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return 0;
     }
@@ -182,7 +182,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         return 0;
@@ -231,7 +231,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         return null;
@@ -247,7 +247,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -274,7 +274,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         return 0;
@@ -287,6 +287,8 @@ public class EOI
         if (obj instanceof Long) ps.setLong(argIndex, (Long) obj);
         if (obj instanceof BigDecimal) ps.setBigDecimal(argIndex, (BigDecimal) obj);
         if (obj instanceof Date) ps.setTimestamp(argIndex, new Timestamp(((Date) obj).getTime()));
+        if (obj instanceof byte[]) ps.setBytes(argIndex, (byte[]) obj);
+        if (obj instanceof Boolean) ps.setBoolean(argIndex, (Boolean) obj);
     }
 
     public static boolean isTableExists(DBMap dbMap)
@@ -307,12 +309,12 @@ public class EOI
             }
             catch (Exception e)
             {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }
@@ -334,12 +336,12 @@ public class EOI
             }
             catch (Exception e)
             {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -352,7 +354,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return false;
     }

@@ -89,7 +89,7 @@ public class DBMap
         }
         catch (ClassNotFoundException | NoSuchMethodException e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -100,6 +100,8 @@ public class DBMap
         if (f.getType().isAssignableFrom(Integer.class)){return DBMapField.INTEGER;}
         if (f.getType().isAssignableFrom(Long.class)){return DBMapField.LONG;}
         if (f.getType().isAssignableFrom(BigDecimal.class)){return DBMapField.DECIMAL;}
+        if (f.getType().isAssignableFrom(byte[].class)){return DBMapField.BLOB;}
+        if (f.getType().isAssignableFrom(Boolean.class)){return DBMapField.BOOLEAN;}
         return null;
     }
 
@@ -110,6 +112,8 @@ public class DBMap
         if (f.getType().isAssignableFrom(Integer.class)){return Integer.class;}
         if (f.getType().isAssignableFrom(Long.class)){return Long.class;}
         if (f.getType().isAssignableFrom(BigDecimal.class)){return BigDecimal.class;}
+        if (f.getType().isAssignableFrom(byte[].class)){return byte[].class;}
+        if (f.getType().isAssignableFrom(Boolean.class)){return Boolean.class;}
         return null;
     }
 

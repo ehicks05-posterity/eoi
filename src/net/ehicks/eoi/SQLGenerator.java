@@ -77,7 +77,7 @@ public class SQLGenerator
             }
             catch (IllegalAccessException | InvocationTargetException e)
             {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
         }
 
@@ -119,7 +119,7 @@ public class SQLGenerator
             }
             catch (IllegalAccessException | InvocationTargetException e)
             {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
 
             if (columnValue != null)

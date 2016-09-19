@@ -12,6 +12,8 @@ public class DBMapField
     public static final String LONG = "LONG";               // bigint
     public static final String DECIMAL = "DECIMAL";         // decimal
     public static final String TIMESTAMP = "TIMESTAMP";     // timestamp
+    public static final String BLOB = "BLOB";               // timestamp
+    public static final String BOOLEAN = "BOOLEAN";               // timestamp
 
     public DBMap dbMap;
     public String className = "";
@@ -58,6 +60,10 @@ public class DBMapField
         }
         if (type.equals(DBMapField.TIMESTAMP))
             columnDef += "timestamp";
+        if (type.equals(DBMapField.BLOB))
+            columnDef += "blob";
+        if (type.equals(DBMapField.BOOLEAN))
+            columnDef += "boolean";
 
         if (primaryKey)
             columnDef += " PRIMARY KEY";
@@ -75,7 +81,7 @@ public class DBMapField
         }
         catch (NoSuchMethodException e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -88,7 +94,7 @@ public class DBMapField
         }
         catch (NoSuchMethodException e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -102,7 +108,7 @@ public class DBMapField
         }
         catch (InvocationTargetException | IllegalAccessException e)
         {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
 
         return null;
