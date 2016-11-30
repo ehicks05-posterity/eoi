@@ -1,6 +1,7 @@
 package net.ehicks.eoi;
 
 import org.h2.jdbcx.JdbcConnectionPool;
+import org.h2.tools.Server;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -11,10 +12,20 @@ import java.util.List;
 public class EOI
 {
     private static JdbcConnectionPool cp;
+    private static Server server;
 
     // example connectionString: jdbc:h2:~/test;TRACE_LEVEL_FILE=1;CACHE_SIZE=131072;SCHEMA=CINEMANG
     public static void init(String connectionString)
     {
+        try
+        {
+            server = Server.createTcpServer("-tcpAllowOthers").start();
+        }
+        catch (Exception e)
+        {
+
+        }
+
         cp = JdbcConnectionPool.create(connectionString, "", "");
     }
 
@@ -22,6 +33,7 @@ public class EOI
     {
         executeUpdate("shutdown compact");
         cp.dispose();
+        server.stop();
     }
 
     private static Connection getConnection()
