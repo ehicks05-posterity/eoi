@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Blob;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +20,15 @@ public class ResultSetParser
 
         if (dbMap == null)
         {
-            int i = 1;
+            ResultSetMetaData rsmd = resultSet.getMetaData();
+            int columnsNumber = rsmd.getColumnCount();
+
             while (resultSet.next())
             {
-                Object object = resultSet.getObject(i);
-                results.add((T) object);
-                i++;
+                Object[] row = new Object[columnsNumber];
+                for (int i = 1; i <= columnsNumber; i++)
+                    row[i - 1] = resultSet.getObject(i);
+                results.add((T) row);
             }
             return results;
         }
