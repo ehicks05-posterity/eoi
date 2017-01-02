@@ -22,6 +22,7 @@ public class DBMap
     public String className = "";
     public String tableName = "";
     public List<DBMapField> fields = new ArrayList<>();
+    public List<String> indexDefinitions = new ArrayList<>();
 
     public static DBMap getDBMapByTableName(String tableName)
     {
@@ -58,6 +59,14 @@ public class DBMap
 
                     Table annotation = (Table) beanClass.getAnnotation(Table.class);
                     dbMap.tableName = annotation.name();
+
+                    Indexes indexesAnnotation = (Indexes) beanClass.getAnnotation(Indexes.class);
+                    if (indexesAnnotation != null)
+                    {
+                        Index[] indexes = indexesAnnotation.value();
+                        for (Index index : indexes)
+                            dbMap.indexDefinitions.add(index.sql());
+                    }
 
                     for (Field f : beanClass.getDeclaredFields())
                     {
