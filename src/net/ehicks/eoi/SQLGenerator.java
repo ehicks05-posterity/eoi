@@ -1,8 +1,7 @@
 package net.ehicks.eoi;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class SQLGenerator
 {
@@ -53,6 +52,8 @@ public class SQLGenerator
         if (existing == null)
             return null;
 
+        List<PSIngredients.UpdatedField> updatedFields = new ArrayList<>();
+
         String setClause = " set ";
         List<Object> setClauseArgs = new ArrayList<>();
         for (DBMapField dbMapField : dbMap.fields)
@@ -67,6 +68,8 @@ public class SQLGenerator
                 boolean equal = bothNull || (bothExist && newValue.equals(valueInDb));
                 if (equal)
                     continue;
+
+                updatedFields.add(new PSIngredients.UpdatedField(dbMapField.fieldName, valueInDb, newValue));
 
                 if (!setClause.endsWith(" set "))
                     setClause += ",";
@@ -86,7 +89,7 @@ public class SQLGenerator
 
         List<Object> args = new ArrayList<>(setClauseArgs);
         args.addAll(whereClause.args);
-        return new PSIngredients("update " + dbMap.tableName + setClause + whereClause.query + ";", args);
+        return new PSIngredients("update " + dbMap.tableName + setClause + whereClause.query + ";", args, updatedFields);
     }
 
     public static <T> PSIngredients getDeleteStatement(T object)
