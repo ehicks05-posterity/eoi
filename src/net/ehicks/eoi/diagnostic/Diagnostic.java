@@ -1,9 +1,12 @@
-package net.ehicks.eoi;
+package net.ehicks.eoi.diagnostic;
 
-import net.ehicks.eoi.beans.Project;
+import net.ehicks.eoi.DBMap;
+import net.ehicks.eoi.EOI;
+import net.ehicks.eoi.SQLGenerator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 public class Diagnostic
@@ -14,7 +17,7 @@ public class Diagnostic
 
         DBMap.loadDbMaps(new File("src/net/ehicks/eoi/beans").getCanonicalPath(), "net.ehicks.eoi.beans");
 
-        dropTables();
+//        dropTables();
 
         createTables();
 
@@ -32,11 +35,41 @@ public class Diagnostic
             project = new Project();
             project.setName("SchoolFI");
             project.setPrefix("SF");
+            project.setInceptDate(new Date());
             newId = EOI.insert(project);
 
             project = Project.getById(newId);
             System.out.println("We just created: " + project);
         }
+
+        for (Project project : Project.getAll())
+        {
+            if (project.getId() == 1)
+            {
+                project.setName("World Peace");
+                project.setPrefix("WP");
+                project.setInceptDate(new Date());
+                EOI.update(project);
+            }
+            if (project.getId() == 2)
+            {
+                project.setName("Write a Book");
+                project.setPrefix("WB");
+                project.setInceptDate(null);
+                EOI.update(project);
+            }
+
+            System.out.println("We just updated: " + project);
+        }
+
+        for (Project project : Project.getAll())
+        {
+            EOI.executeDelete(project);
+            System.out.println("We just deleted: " + project);
+        }
+
+        System.out.println("done");
+        EOI.destroy();
     }
 
     private static void createTables()

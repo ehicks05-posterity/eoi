@@ -1,24 +1,18 @@
-package net.ehicks.eoi.beans;
+package net.ehicks.eoi.diagnostic;
 
 import net.ehicks.eoi.EOI;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 @Entity
 @Table(name = "projects")
 public class Project implements Serializable
 {
-//    @Version
-//    @Column(name = "version")
-//    private Long version;
-
-    // create sequence eric.role_seq start with 1 increment by 1;
     @Id
-    @GeneratedValue(strategy=GenerationType.SEQUENCE, generator="ROLE_SEQ")
-    @SequenceGenerator(name="ROLE_SEQ", sequenceName="ROLE_SEQ", allocationSize=1)
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "bigint not null auto_increment primary key")
     private Long id;
 
@@ -27,6 +21,14 @@ public class Project implements Serializable
 
     @Column(name = "prefix", nullable = false, unique = true)
     private String prefix = "";
+
+    @Column(name = "incept_date")
+    @Temporal(TemporalType.DATE)
+    private Date inceptDate;
+
+    @Column(name = "last_updated_on")
+    @Temporal(TemporalType.DATE)
+    private Date lastUpdatedOn;
 
     @Override
     public boolean equals(Object obj)
@@ -44,7 +46,7 @@ public class Project implements Serializable
 
     public String toString()
     {
-        return name;
+        return this.getClass().getSimpleName() + ":" + id;
     }
 
     public static List<Project> getAll()
@@ -88,5 +90,25 @@ public class Project implements Serializable
     public void setPrefix(String prefix)
     {
         this.prefix = prefix;
+    }
+
+    public Date getInceptDate()
+    {
+        return inceptDate;
+    }
+
+    public void setInceptDate(Date inceptDate)
+    {
+        this.inceptDate = inceptDate;
+    }
+
+    public Date getLastUpdatedOn()
+    {
+        return lastUpdatedOn;
+    }
+
+    public void setLastUpdatedOn(Date lastUpdatedOn)
+    {
+        this.lastUpdatedOn = lastUpdatedOn;
     }
 }
