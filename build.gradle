@@ -7,12 +7,20 @@ apply plugin: 'maven'
 
 repositories {
     mavenCentral()
+    maven
+    {
+        url '***REMOVED***/libs-snapshot-local'
+        credentials{
+            username = 'admin'
+            ***REMOVED***
+        }
+    }
 }
 
 dependencies {
-    compile files('C:/javalib/hicks-common.jar')
+    compile 'net.ehicks:common:1.0-SNAPSHOT'
 
-    compile group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.0-api', version: '1.0.1.Final'
+    compile 'org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final'
     compile 'org.slf4j:slf4j-api:1.7.22'
     compile 'org.slf4j:slf4j-log4j12:1.7.22'
     compile 'log4j:apache-log4j-extras:1.2.17'
@@ -32,12 +40,6 @@ idea{
         downloadJavadoc = true // defaults to false
         downloadSources = true
     }
-}
-
-task copyJarToBin(type: Copy) {
-    dependsOn build
-    from jar // shortcut for createJar.outputs.files
-    into "c:/javalib/tmp"
 }
 
 uploadArchives {
