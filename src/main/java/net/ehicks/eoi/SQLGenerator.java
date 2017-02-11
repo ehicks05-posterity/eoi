@@ -157,4 +157,34 @@ public class SQLGenerator
 
         return "select count(*) " + query;
     }
+
+    public static String getLimitClause(long limit, long offset)
+    {
+        String limitString = limit > 0 ? String.valueOf(limit) : "";
+        String offsetString = limit > 0 ? String.valueOf(offset) : "";
+
+        return getLimitClause(limitString, offsetString);
+    }
+
+    public static String getLimitClause(String limit, String offset)
+    {
+        String limitClause = "";
+        if (EOI.databaseBrand.equals("h2"))
+        {
+            if (limit.length() > 0)
+                limitClause += " limit " + limit;
+            if (offset.length() > 0)
+                limitClause += " offset " + offset;
+        }
+
+        if (EOI.databaseBrand.equals("sqlserver"))
+        {
+            // offset is mandatory with fetch
+            limitClause += " offset " + offset + " rows ";
+            if (limit.length() > 0)
+                limitClause += " fetch next " + limit + " rows only ";
+        }
+
+        return limitClause;
+    }
 }

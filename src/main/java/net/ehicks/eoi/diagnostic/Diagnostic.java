@@ -11,13 +11,26 @@ import java.util.List;
 
 public class Diagnostic
 {
-    public static void main(String[] args) throws IOException
+    public static void main(String[] args) throws IOException, ClassNotFoundException
     {
-        EOI.init("jdbc:h2:mem:test");
+        try
+        {
+            runDiagnostic();
+        }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+        }
+    }
 
-        DBMap.loadDbMaps(new File("src/net/ehicks/eoi/beans").getCanonicalPath(), "net.ehicks.eoi.beans");
+    public static void runDiagnostic() throws IOException
+    {
+//        EOI.init("jdbc:h2:mem:test;CACHE_SIZE=2097152;DB_CLOSE_ON_EXIT=FALSE");
+        EOI.init("jdbc:sqlserver://localhost\\SQLEXPRESS:1433;***REMOVED***");
 
-//        dropTables();
+        DBMap.loadDbMaps(new File("src/main/java/net/ehicks/eoi/diagnostic").getCanonicalPath(), "net.ehicks.eoi.diagnostic");
+
+        dropTables();
 
         createTables();
 
@@ -60,6 +73,19 @@ public class Diagnostic
             }
 
             System.out.println("We just updated: " + project);
+        }
+
+        for (Project project : Project.getAll())
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                if (i == 0) System.out.print(String.format("%-30s", project.getId()));
+                if (i == 1) System.out.print(String.format("%-30s", project.getName()));
+                if (i == 2) System.out.print(String.format("%-30s", project.getPrefix()));
+                if (i == 3) System.out.print(String.format("%-30s", project.getInceptDate()));
+                if (i == 4) System.out.print(String.format("%-30s", project.getLastUpdatedOn()));
+            }
+            System.out.println();
         }
 
         for (Project project : Project.getAll())

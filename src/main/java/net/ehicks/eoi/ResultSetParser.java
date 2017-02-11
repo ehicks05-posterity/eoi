@@ -54,7 +54,12 @@ public class ResultSetParser
                     if (projectionColumn.type.equals("INTEGER"))
                         list.add(resultSet.getInt(projectionColumn.columnLabel));
                     if (projectionColumn.type.equals("LONG"))
-                        list.add(resultSet.getLong(projectionColumn.columnLabel));
+                    {
+                        if (EOI.databaseBrand.equals("sqlserver") && projectionColumn.columnLabel.equals("count(*)"))
+                            list.add(resultSet.getLong(1));
+                        else
+                            list.add(resultSet.getLong(projectionColumn.columnLabel));
+                    }
                     if (projectionColumn.type.equals("DECIMAL"))
                         list.add(resultSet.getBigDecimal(projectionColumn.columnLabel));
                     if (projectionColumn.type.equals("TIMESTAMP"))
@@ -113,7 +118,10 @@ public class ResultSetParser
         if (field.type.equals("BLOB"))
         {
             Blob blob = resultSet.getBlob(field.columnName);
-            byte[] bytes = blob.getBytes(0, (int) blob.length());
+            int position = 0;
+            if (EOI.databaseBrand.equals("sqlserver"))
+                position = 1;
+            byte[] bytes = blob.getBytes(position, (int) blob.length());
             method.invoke(object, (Object) bytes);
         }
         if (field.type.equals("BOOLEAN"))

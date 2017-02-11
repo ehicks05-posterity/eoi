@@ -37,14 +37,26 @@ public class DBMapField
     public String getColumnDefinition()
     {
         if (declaredColumnDefinition.length() > 0)
+        {
+            if (declaredColumnDefinition.contains("auto_increment"))
+            {
+                if (EOI.databaseBrand.equals("sqlserver"))
+                    declaredColumnDefinition = declaredColumnDefinition.replace("auto_increment", "IDENTITY(1,1)");
+            }
+            if (declaredColumnDefinition.contains("varchar2(32000 CHAR)"))
+            {
+                if (EOI.databaseBrand.equals("sqlserver"))
+                    declaredColumnDefinition = declaredColumnDefinition.replace("varchar2(32000 CHAR)", "varchar(max)");
+            }
             return declaredColumnDefinition;
+        }
 
         String columnDef = "";
         if (type.equals(DBMapField.STRING))
         {
             if (length == 0)
                 length = 255;
-            columnDef += "varchar2(" + length + ")";
+            columnDef += "varchar(" + length + ")";
         }
         if (type.equals(DBMapField.INTEGER))
             columnDef += "integer";
@@ -59,11 +71,26 @@ public class DBMapField
             columnDef += "decimal(" + precision + "," + scale + ")";
         }
         if (type.equals(DBMapField.TIMESTAMP))
-            columnDef += "timestamp";
+        {
+            if (EOI.databaseBrand.equals("h2"))
+                columnDef += "timestamp";
+            if (EOI.databaseBrand.equals("sqlserver"))
+                columnDef += "datetime";
+        }
         if (type.equals(DBMapField.BLOB))
-            columnDef += "blob";
+        {
+            if (EOI.databaseBrand.equals("sqlserver"))
+                columnDef += "varbinary(max)";
+            else
+                columnDef += "blob";
+        }
         if (type.equals(DBMapField.BOOLEAN))
-            columnDef += "boolean";
+        {
+            if (EOI.databaseBrand.equals("sqlserver"))
+                columnDef += "bit";
+            else
+                columnDef += "boolean";
+        }
 
         if (primaryKey)
             columnDef += " PRIMARY KEY";

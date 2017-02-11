@@ -58,6 +58,8 @@ public class DBMap
                     dbMap.constructor = beanClass.getConstructor();
 
                     Table annotation = (Table) beanClass.getAnnotation(Table.class);
+                    if (annotation == null)
+                        continue;
                     dbMap.tableName = annotation.name();
 
                     Indexes indexesAnnotation = (Indexes) beanClass.getAnnotation(Indexes.class);

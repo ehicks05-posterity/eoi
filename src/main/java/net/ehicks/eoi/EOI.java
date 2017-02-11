@@ -1,6 +1,6 @@
 package net.ehicks.eoi;
 
-import org.h2.jdbcx.JdbcConnectionPool;
+import com.zaxxer.hikari.HikariDataSource;
 import org.h2.tools.Server;
 
 import java.math.BigDecimal;
@@ -12,36 +12,68 @@ import java.util.List;
 
 public class EOI
 {
-    private static JdbcConnectionPool cp;
+    private static HikariDataSource cp;
     private static Server server;
+    public static String databaseBrand = "";
+    public static ThreadLocal<Connection> conn = new ThreadLocal<>();
 
     // example connectionString: jdbc:h2:~/test;TRACE_LEVEL_FILE=1;CACHE_SIZE=131072;SCHEMA=CINEMANG
     public static void init(String connectionString)
     {
         try
         {
-            server = Server.createTcpServer("-tcpAllowOthers").start();
+            if (connectionString.contains("jdbc:h2"))
+            {
+                databaseBrand = "h2";
+                server = Server.createTcpServer("-tcpAllowOthers").start();
+            }
+            if (connectionString.contains("jdbc:sqlserver"))
+                databaseBrand = "sqlserver";
+
+            cp = new HikariDataSource();
+            if (connectionString.contains("jdbc:sqlserver"))
+                cp.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            cp.setJdbcUrl(connectionString);
+//            cp.setUsername("erictest");
+//            cp.setPassword("eric");
+//            cp.addDataSourceProperty("cachePrepStmts", "true");
+//            cp.addDataSourceProperty("prepStmtCacheSize", "250");
+//            cp.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         }
         catch (Exception e)
         {
-
+            System.out.println(e.getMessage());
         }
-
-        cp = JdbcConnectionPool.create(connectionString, "", "");
     }
 
     public static void destroy()
     {
-        executeUpdate("shutdown compact");
-        cp.dispose();
-        server.stop();
+        cp.close();
+        if (databaseBrand.equals("h2"))
+            server.stop();
     }
 
     private static Connection getConnection()
     {
+        return getConnection(true);
+    }
+
+    private static Connection getConnection(boolean autoCommit)
+    {
+        Connection connection = conn.get();
         try
         {
-            return cp.getConnection();
+            // check for existing connection (indicates a transaction was already started??)
+            if (connection == null)
+            {
+                connection = cp.getConnection();
+                conn.set(connection);
+
+                if (!autoCommit)
+                    connection.setAutoCommit(false);
+            }
+
+            return connection;
         }
         catch (Exception e)
         {
@@ -51,28 +83,102 @@ public class EOI
         return null;
     }
 
-    // -------- String-Based Methods -------- //
-
-    // for INSERT, UPDATE, or DELETE, or DDL statements
-    public static int executeUpdate(String queryString)
+    public static void startTransaction()
     {
-        try (Connection connection = getConnection();
-             Statement statement = connection.createStatement();)
+        getConnection(false);
+    }
+
+    public static void commit()
+    {
+        try
         {
-            return statement.executeUpdate(queryString);
+            Connection connection = conn.get();
+            if (connection != null)
+            {
+                connection.commit();
+                closeConnection(true);
+            }
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
+    }
+
+    public static void rollback()
+    {
+        try
+        {
+            Connection connection = conn.get();
+            if (connection != null)
+            {
+                if (!connection.getAutoCommit())
+                    connection.rollback();
+                closeConnection(true);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private static void closeConnection(boolean hardClose)
+    {
+        try
+        {
+            Connection connection = conn.get();
+            if (connection != null)
+            {
+                if (!connection.getAutoCommit() && !hardClose)
+                    return;
+
+                connection.setAutoCommit(true);
+                connection.close();
+                conn.remove();
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    // -------- String-Based Methods -------- //
+
+    // for INSERT, UPDATE, or DELETE, or DDL statements
+    public static int executeUpdate(String queryString)
+    {
+        Connection connection = getConnection();
+        try
+        {
+            try (Statement statement = connection.createStatement();)
+            {
+                return statement.executeUpdate(queryString);
+            }
+            catch (Exception e)
+            {
+                rollback();
+                e.printStackTrace();
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
+            closeConnection(false);
+        }
+
         return 0;
     }
 
     // for INSERT, UPDATE, or DELETE, or DDL statements
     public static int executePreparedUpdate(String queryString, List<Object> args)
     {
-        try (Connection connection = getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(queryString);)
+        Connection connection = getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(queryString);)
         {
             int argIndex = 1;
             for (Object arg : args)
@@ -82,8 +188,14 @@ public class EOI
         }
         catch (Exception e)
         {
+            rollback();
             e.printStackTrace();
         }
+        finally
+        {
+            closeConnection(false);
+        }
+
         return 0;
     }
 
@@ -130,8 +242,8 @@ public class EOI
     {
         String insertStatement = SQLGenerator.getInsertStatement(object);
 
-        try (Connection connection = getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(insertStatement, Statement.RETURN_GENERATED_KEYS);)
+        Connection connection = getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertStatement, Statement.RETURN_GENERATED_KEYS);)
         {
             DBMap dbMap = DBMap.getDBMapByClass(object.getClass());
 
@@ -166,7 +278,50 @@ public class EOI
         }
         catch (Exception e)
         {
+            rollback();
             e.printStackTrace();
+        }
+        finally
+        {
+            closeConnection(false);
+        }
+        return 0;
+    }
+
+    public static long batchInsert(List<?> objects)
+    {
+        String insertStatement = SQLGenerator.getInsertStatement(objects.get(0));
+
+        Connection connection = getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertStatement))
+        {
+            DBMap dbMap = DBMap.getDBMapByClass(objects.get(0).getClass());
+
+            for (Object object : objects)
+            {
+                int argIndex = 1;
+                for (DBMapField dbMapField : dbMap.fields)
+                {
+                    if (dbMapField.autoIncrement)
+                        continue;
+
+                    Object value = dbMapField.getValue(object);
+
+                    setPreparedStatementParameter(preparedStatement, argIndex++, value);
+                }
+
+                preparedStatement.addBatch();
+            }
+            preparedStatement.executeBatch();
+        }
+        catch (Exception e)
+        {
+            rollback();
+            e.printStackTrace();
+        }
+        finally
+        {
+            closeConnection(false);
         }
         return 0;
     }
@@ -222,8 +377,8 @@ public class EOI
         if (psIngredients == null)
             return 0;
 
-        try (Connection connection = getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(psIngredients.query);)
+        Connection connection = getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(psIngredients.query);)
         {
             int argIndex = 1;
             for (Object arg : psIngredients.args)
@@ -246,7 +401,12 @@ public class EOI
         }
         catch (Exception e)
         {
+            rollback();
             e.printStackTrace();
+        }
+        finally
+        {
+            closeConnection(false);
         }
 
         return 0;
@@ -282,8 +442,8 @@ public class EOI
 
     public static <T> List<T> executeQuery(String queryString, List<Object> args, boolean bypassCache)
     {
-        try (Connection connection = getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(queryString))
+        Connection connection = getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(queryString))
         {
             int argIndex = 1;
             for (Object arg : args)
@@ -304,6 +464,10 @@ public class EOI
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+        finally
+        {
+            closeConnection(false);
         }
 
         return null;
@@ -370,7 +534,8 @@ public class EOI
 
     public static boolean isTableExists(DBMap dbMap)
     {
-        try (Connection connection = getConnection();)
+        Connection connection = getConnection();
+        try
         {
             DatabaseMetaData databaseMetaData = connection.getMetaData();
             try (ResultSet resultSet = databaseMetaData.getTables(connection.getCatalog(), null, null, null);)
@@ -393,46 +558,18 @@ public class EOI
         {
             e.printStackTrace();
         }
+        finally
+        {
+            closeConnection(false);
+        }
         return false;
     }
 
-    public static String getCurrentSchema()
+    public static List<String> getCPInfo()
     {
-        try (Connection connection = getConnection();)
-        {
-            DatabaseMetaData databaseMetaData = connection.getMetaData();
-            try (ResultSet resultSet = databaseMetaData.getSchemas(connection.getCatalog(), "");)
-            {
-                List<String> schemaNames = new ArrayList<>();
-                while (resultSet.next())
-                {
-                    String schemaName = resultSet.getString("TABLE_SCHEM").toUpperCase();
-                    System.out.println(schemaName);
-                    schemaNames.add(schemaName);
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public static boolean setSchema(String schemaName)
-    {
-        try (Connection connection = getConnection();)
-        {
-            connection.setSchema(schemaName);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return false;
+        List<String> cpInfo = new ArrayList<>();
+//        cpInfo.add("Active Connections: " + cp.getActiveConnections());
+//        cpInfo.add("Max Connections: " + cp.getMaxConnections());
+        return cpInfo;
     }
 }
