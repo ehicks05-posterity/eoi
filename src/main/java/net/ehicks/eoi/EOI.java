@@ -2,6 +2,8 @@ package net.ehicks.eoi;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.h2.tools.Server;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.*;
@@ -12,9 +14,12 @@ import java.util.List;
 
 public class EOI
 {
+    private static final Logger log = LoggerFactory.getLogger(EOI.class);
+
     private static HikariDataSource cp;
     private static Server server;
     public static String databaseBrand = "";
+    public static boolean enableCache = false;
     public static ThreadLocal<Connection> conn = new ThreadLocal<>();
 
     // example connectionString: jdbc:h2:~/test;TRACE_LEVEL_FILE=1;CACHE_SIZE=131072;SCHEMA=CINEMANG
@@ -29,20 +34,16 @@ public class EOI
             }
             if (connectionString.contains("jdbc:sqlserver"))
                 databaseBrand = "sqlserver";
+            log.info("EOI is connecting to {} db", databaseBrand);
 
             cp = new HikariDataSource();
             if (connectionString.contains("jdbc:sqlserver"))
                 cp.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             cp.setJdbcUrl(connectionString);
-//            cp.setUsername("erictest");
-//            cp.setPassword("eric");
-//            cp.addDataSourceProperty("cachePrepStmts", "true");
-//            cp.addDataSourceProperty("prepStmtCacheSize", "250");
-//            cp.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -234,7 +235,7 @@ public class EOI
             else
                 fail++;
         }
-        System.out.println("Finished mass create: " + success + " succeeded, " + fail + " failed");
+        log.info("Finished mass create: {} succeeded, {} failed", success, fail);
         return success;
     }
 
@@ -368,7 +369,7 @@ public class EOI
             else
                 fail++;
         }
-        System.out.println("Finished mass update: " + success + " succeeded, " + fail + " failed");
+        log.info("Finished mass update: {} succeeded, {} failed", success, fail);
     }
 
     private static int _update(Object object)
@@ -395,7 +396,8 @@ public class EOI
                     createAudit("UPDATE", dbMap, 0, object, updatedField.fieldName, oldValue, newValue);
                 }
 
-                EOICache.set(object);
+                if (enableCache)
+                    EOICache.set(object);
                 return result;
             }
         }
@@ -454,9 +456,8 @@ public class EOI
             long end = System.currentTimeMillis();
             if (end - start >= 100)
             {
-                System.out.println("EOI QUERY took " + (end - start) + "ms: " + queryString);
-                for (Object arg : args)
-                    System.out.println("  " + arg);
+                String message = "EOI QUERY took {} ms: {}. Args: {}";
+                log.info(message, (end - start), queryString, args);
             }
 
             return ResultSetParser.parseResultSet(queryString, resultSet, bypassCache);

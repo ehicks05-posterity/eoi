@@ -86,7 +86,7 @@ public class ResultSetParser
             invokeSetter(resultSet, object, field);
 
         // we've filled the PK, can we find it in cache?
-        if (!bypassCache)
+        if (EOI.enableCache && !bypassCache)
         {
             Object fromCache = EOICache.get(object.toString());
             if (fromCache != null)
@@ -96,7 +96,8 @@ public class ResultSetParser
         for (DBMapField field : dbMap.getNonPKFields())
             invokeSetter(resultSet, object, field);
 
-        EOICache.set(object);
+        if (EOI.enableCache)
+            EOICache.set(object);
 
         return object;
     }

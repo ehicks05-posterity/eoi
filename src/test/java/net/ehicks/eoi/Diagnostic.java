@@ -1,17 +1,18 @@
-package net.ehicks.eoi.diagnostic;
+package net.ehicks.eoi;
 
-import net.ehicks.eoi.DBMap;
-import net.ehicks.eoi.EOI;
-import net.ehicks.eoi.SQLGenerator;
+import net.ehicks.eoi.diagnostic.Project;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
 public class Diagnostic
 {
-    public static void main(String[] args) throws IOException, ClassNotFoundException
+    @Test
+    public void main() throws IOException, ClassNotFoundException
     {
         try
         {
@@ -23,7 +24,7 @@ public class Diagnostic
         }
     }
 
-    public static void runDiagnostic() throws IOException
+    private static void runDiagnostic() throws IOException
     {
 //        EOI.init("jdbc:h2:mem:test;CACHE_SIZE=2097152;DB_CLOSE_ON_EXIT=FALSE");
         EOI.init("jdbc:sqlserver://localhost\\SQLEXPRESS:1433;***REMOVED***");
@@ -93,6 +94,8 @@ public class Diagnostic
             EOI.executeDelete(project);
             System.out.println("We just deleted: " + project);
         }
+
+        EOI.executeQuery("select * from projects where id in (?,?,?,?,?)", Arrays.asList(1,2,3,4,5));
 
         System.out.println("done");
         EOI.destroy();
