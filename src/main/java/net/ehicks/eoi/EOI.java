@@ -215,21 +215,21 @@ public class EOI
 
     // -------- Object-Based Methods -------- //
 
-    public static long insert(Object object)
+    public static long insert(Object object, AuditUser auditUser)
     {
         if (object instanceof List)
-            return _insertFromList((List) object);
+            return _insertFromList((List) object, auditUser);
         else
-            return _insert(object);
+            return _insert(object, auditUser);
     }
 
-    private static long _insertFromList(List<?> objects)
+    private static long _insertFromList(List<?> objects, AuditUser auditUser)
     {
         int success = 0;
         int fail = 0;
         for (Object object : objects)
         {
-            long result = _insert(object);
+            long result = _insert(object, auditUser);
             if (result > 0)
                 success++;
             else
@@ -239,7 +239,7 @@ public class EOI
         return success;
     }
 
-    private static long _insert(Object object)
+    private static long _insert(Object object, AuditUser auditUser)
     {
         String insertStatement = SQLGenerator.getInsertStatement(object);
 
@@ -273,7 +273,7 @@ public class EOI
             long generatedKey = generatedKeysResultSet.getLong(1);
 
             // prepare audit
-            createAudit("INSERT", dbMap, generatedKey);
+            createAudit(auditUser, "INSERT", dbMap, generatedKey);
 
             return generatedKey;
         }
@@ -327,12 +327,12 @@ public class EOI
         return 0;
     }
 
-    private static void createAudit(String eventType, DBMap dbMap, long objectId)
+    private static void createAudit(AuditUser auditUser, String eventType, DBMap dbMap, long objectId)
     {
-        createAudit(eventType, dbMap, objectId, null, null, null, null);
+        createAudit(auditUser, eventType, dbMap, objectId, null, null, null, null);
     }
 
-    private static void createAudit(String eventType, DBMap dbMap, long objectId, Object object, String fieldName, String oldValue, String newValue)
+    private static void createAudit(AuditUser auditUser, String eventType, DBMap dbMap, long objectId, Object object, String fieldName, String oldValue, String newValue)
     {
         if (!dbMap.className.equals("Audit"))
         {
@@ -343,27 +343,27 @@ public class EOI
                 if (objectId != 0)
                     objectKey = dbMap.className + ":" + objectId;
 
-            String queryString = "insert into audits (object_key, event_time, event_type, field_name, old_value, new_value) values (?,?,?,?,?,?);";
-            List<Object> args = Arrays.asList(objectKey, new Date(), eventType, fieldName, oldValue, newValue);
+            String queryString = "insert into audits (object_key, user_id, user_ip, event_time, event_type, field_name, old_value, new_value) values (?,?,?,?,?,?,?,?);";
+            List<Object> args = Arrays.asList(objectKey, auditUser.getId(), auditUser.getIpAddress(), new Date(), eventType, fieldName, oldValue, newValue);
             EOI.executePreparedUpdate(queryString, args);
         }
     }
 
-    public static void update(Object object)
+    public static void update(Object object, AuditUser auditUser)
     {
         if (object instanceof List)
-            _updateFromList((List) object);
+            _updateFromList((List) object, auditUser);
         else
-            _update(object);
+            _update(object, auditUser);
     }
 
-    private static void _updateFromList(List<?> objects)
+    private static void _updateFromList(List<?> objects, AuditUser auditUser)
     {
         int success = 0;
         int fail = 0;
         for (Object object : objects)
         {
-            int result = _update(object);
+            int result = _update(object, auditUser);
             if (result == 1)
                 success++;
             else
@@ -372,7 +372,7 @@ public class EOI
         log.info("Finished mass update: {} succeeded, {} failed", success, fail);
     }
 
-    private static int _update(Object object)
+    private static int _update(Object object, AuditUser auditUser)
     {
         PSIngredients psIngredients = SQLGenerator.getUpdateStatement(object);
         if (psIngredients == null)
@@ -393,7 +393,7 @@ public class EOI
                 {
                     String oldValue = updatedField.oldValue == null ? "<NULL>" : updatedField.oldValue.toString();
                     String newValue = updatedField.newValue == null ? "<NULL>" : updatedField.newValue.toString();
-                    createAudit("UPDATE", dbMap, 0, object, updatedField.fieldName, oldValue, newValue);
+                    createAudit(auditUser, "UPDATE", dbMap, 0, object, updatedField.fieldName, oldValue, newValue);
                 }
 
                 if (enableCache)
@@ -489,7 +489,7 @@ public class EOI
         return null;
     }
 
-    public static int executeDelete(Object object)
+    public static int executeDelete(Object object, AuditUser auditUser)
     {
         PSIngredients psIngredients = SQLGenerator.getDeleteStatement(object);
         if (psIngredients == null)
@@ -507,7 +507,7 @@ public class EOI
             {
                 // prepare audit
                 DBMap dbMap = DBMap.getDBMapByClass(object.getClass());
-                createAudit("DELETE", dbMap, (Long) dbMap.getPKFields().get(0).getGetter().invoke(object));
+                createAudit(auditUser, "DELETE", dbMap, (Long) dbMap.getPKFields().get(0).getGetter().invoke(object));
 
                 EOICache.unset(object);
                 return result;

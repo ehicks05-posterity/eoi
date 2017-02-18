@@ -41,7 +41,7 @@ public class Diagnostic
             Project project = new Project();
             project.setName("Genesis");
             project.setPrefix("GS");
-            long newId = EOI.insert(project);
+            long newId = EOI.insert(project, null);
 
             project = Project.getById(newId);
             System.out.println("We just created: " + project);
@@ -50,7 +50,7 @@ public class Diagnostic
             project.setName("SchoolFI");
             project.setPrefix("SF");
             project.setInceptDate(new Date());
-            newId = EOI.insert(project);
+            newId = EOI.insert(project, null);
 
             project = Project.getById(newId);
             System.out.println("We just created: " + project);
@@ -63,14 +63,14 @@ public class Diagnostic
                 project.setName("World Peace");
                 project.setPrefix("WP");
                 project.setInceptDate(new Date());
-                EOI.update(project);
+                EOI.update(project, null);
             }
             if (project.getId() == 2)
             {
                 project.setName("Write a Book");
                 project.setPrefix("WB");
                 project.setInceptDate(null);
-                EOI.update(project);
+                EOI.update(project, null);
             }
 
             System.out.println("We just updated: " + project);
@@ -91,7 +91,7 @@ public class Diagnostic
 
         for (Project project : Project.getAll())
         {
-            EOI.executeDelete(project);
+            EOI.executeDelete(project, null);
             System.out.println("We just deleted: " + project);
         }
 
