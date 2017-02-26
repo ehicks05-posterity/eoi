@@ -15,11 +15,12 @@ import java.util.List;
 public class EOI
 {
     private static final Logger log = LoggerFactory.getLogger(EOI.class);
-
-    private static HikariDataSource cp;
     private static Server server;
+
+    public static HikariDataSource cp;
     public static String databaseBrand = "";
     public static boolean enableCache = false;
+    public static String poolName = "Primary Pool";
     public static ThreadLocal<Connection> conn = new ThreadLocal<>();
 
     // example connectionString: jdbc:h2:~/test;TRACE_LEVEL_FILE=1;CACHE_SIZE=131072;SCHEMA=CINEMANG
@@ -39,6 +40,8 @@ public class EOI
             cp = new HikariDataSource();
             if (connectionString.contains("jdbc:sqlserver"))
                 cp.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            cp.setPoolName(poolName);
+            cp.setMetricRegistry(Metrics.getMetricRegistry());
             cp.setJdbcUrl(connectionString);
         }
         catch (Exception e)
@@ -533,44 +536,31 @@ public class EOI
         if (obj == null) ps.setNull(argIndex, Types.NULL);
     }
 
-    public static boolean isTableExists(DBMap dbMap)
+    public static boolean isTableExists(String tableNamePattern)
     {
-        Connection connection = getConnection();
+        Connection connection = getConnection(true);
         try
         {
-            DatabaseMetaData databaseMetaData = connection.getMetaData();
-            try (ResultSet resultSet = databaseMetaData.getTables(connection.getCatalog(), null, null, null);)
+            ResultSet resultSet = connection.getMetaData().getTables(null, null, tableNamePattern, new String[] {"TABLE"});
+            if (resultSet.next())
             {
-                List<String> tableNamesFromDb = new ArrayList<>();
-                while (resultSet.next())
-                {
-                    String tableName = resultSet.getString("TABLE_NAME").toUpperCase();
-                    tableNamesFromDb.add(tableName);
-                    if (tableName.equals(dbMap.tableName.toUpperCase()))
-                        return true;
-                }
+                log.info("Found table " + tableNamePattern);
+                return true;
             }
-            catch (Exception e)
+            else
             {
-                e.printStackTrace();
+                log.info("Did not find table " + tableNamePattern);
+                return false;
             }
         }
-        catch (Exception e)
+        catch (SQLException e)
         {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         finally
         {
-            closeConnection(false);
+            closeConnection(true);
         }
         return false;
-    }
-
-    public static List<String> getCPInfo()
-    {
-        List<String> cpInfo = new ArrayList<>();
-//        cpInfo.add("Active Connections: " + cp.getActiveConnections());
-//        cpInfo.add("Max Connections: " + cp.getMaxConnections());
-        return cpInfo;
     }
 }

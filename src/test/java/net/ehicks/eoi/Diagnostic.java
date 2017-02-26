@@ -29,6 +29,21 @@ public class Diagnostic
 //        EOI.init("jdbc:h2:mem:test;CACHE_SIZE=2097152;DB_CLOSE_ON_EXIT=FALSE");
         EOI.init("jdbc:sqlserver://localhost\\SQLEXPRESS:1433;***REMOVED***");
 
+        AuditUser auditUser = new AuditUser()
+        {
+            @Override
+            public String getId()
+            {
+                return "Diagnostic";
+            }
+
+            @Override
+            public String getIpAddress()
+            {
+                return "";
+            }
+        };
+
         DBMap.loadDbMaps(new File("src/main/java/net/ehicks/eoi/diagnostic").getCanonicalPath(), "net.ehicks.eoi.diagnostic");
 
         dropTables();
@@ -41,7 +56,7 @@ public class Diagnostic
             Project project = new Project();
             project.setName("Genesis");
             project.setPrefix("GS");
-            long newId = EOI.insert(project, null);
+            long newId = EOI.insert(project, auditUser);
 
             project = Project.getById(newId);
             System.out.println("We just created: " + project);
@@ -50,7 +65,7 @@ public class Diagnostic
             project.setName("SchoolFI");
             project.setPrefix("SF");
             project.setInceptDate(new Date());
-            newId = EOI.insert(project, null);
+            newId = EOI.insert(project, auditUser);
 
             project = Project.getById(newId);
             System.out.println("We just created: " + project);
@@ -63,14 +78,14 @@ public class Diagnostic
                 project.setName("World Peace");
                 project.setPrefix("WP");
                 project.setInceptDate(new Date());
-                EOI.update(project, null);
+                EOI.update(project, auditUser);
             }
             if (project.getId() == 2)
             {
                 project.setName("Write a Book");
                 project.setPrefix("WB");
                 project.setInceptDate(null);
-                EOI.update(project, null);
+                EOI.update(project, auditUser);
             }
 
             System.out.println("We just updated: " + project);
@@ -91,11 +106,16 @@ public class Diagnostic
 
         for (Project project : Project.getAll())
         {
-            EOI.executeDelete(project, null);
+            EOI.executeDelete(project, auditUser);
             System.out.println("We just deleted: " + project);
         }
 
         EOI.executeQuery("select * from projects where id in (?,?,?,?,?)", Arrays.asList(1,2,3,4,5));
+
+        for (String key : Metrics.getMetrics().keySet())
+        {
+            System.out.println(key + " -> " + Metrics.getMetrics().get(key));
+        }
 
         System.out.println("done");
         EOI.destroy();
@@ -106,7 +126,7 @@ public class Diagnostic
         long subTaskStart;
         subTaskStart = System.currentTimeMillis();
         for (DBMap dbMap : DBMap.dbMaps)
-            if (!EOI.isTableExists(dbMap))
+            if (!EOI.isTableExists(dbMap.tableName))
             {
                 System.out.println("Creating table " + dbMap.tableName + "...");
                 String createTableStatement = SQLGenerator.getCreateTableStatement(dbMap);
@@ -122,8 +142,11 @@ public class Diagnostic
         subTaskStart = System.currentTimeMillis();
         for (DBMap dbMap : DBMap.dbMaps)
         {
-            System.out.print("Dropping " + dbMap.tableName + "...");
-            System.out.println(EOI.executeUpdate("drop table " + dbMap.tableName));
+            if (EOI.isTableExists(dbMap.tableName))
+            {
+                System.out.println("Dropping " + dbMap.tableName + "...");
+                EOI.executeUpdate("drop table " + dbMap.tableName);
+            }
         }
         System.out.println("Dropped existing tables in " + (System.currentTimeMillis() - subTaskStart) + "ms");
     }
