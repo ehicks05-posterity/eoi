@@ -7,10 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.Date;
-import java.util.List;
 
 public class EOI
 {
@@ -477,6 +475,64 @@ public class EOI
         return null;
     }
 
+    public static Map<String, List<Object>> getPrintableResult(String queryString) throws SQLException
+    {
+        return getPrintableResult(queryString, Collections.emptyList());
+    }
+    
+    public static Map<String, List<Object>> getPrintableResult(String queryString, List<Object> args) throws SQLException
+    {
+        Connection connection = getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(queryString))
+        {
+            int argIndex = 1;
+            for (Object arg : args)
+                setPreparedStatementParameter(preparedStatement, argIndex++, arg);
+
+            long start = System.currentTimeMillis();
+            ResultSet resultSet = preparedStatement.executeQuery();
+            long end = System.currentTimeMillis();
+            if (end - start >= 100)
+            {
+                String message = "EOI QUERY took {} ms: {}. Args: {}";
+                log.info(message, (end - start), queryString, args);
+            }
+
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            int columns = metaData.getColumnCount();
+            List<Object> columnLabels = new ArrayList<>();
+            for (int i = 0; i < columns; i++)
+            {
+                String columnLabel = metaData.getColumnLabel(i + 1);
+                columnLabels.add(columnLabel);
+            }
+
+            List<Object> resultRows = new ArrayList<>();
+            while (resultSet.next())
+            {
+                Object[] row = new Object[columns];
+                for (int i = 0; i < columns; i++)
+                    row[i] = resultSet.getObject(i + 1);
+                resultRows.add(row);
+            }
+
+            Map<String, List<Object>> printableResults = new HashMap<>();
+            printableResults.put("columnLabels", columnLabels);
+            printableResults.put("resultRows", resultRows);
+
+            return printableResults;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+            throw e;
+        }
+        finally
+        {
+            closeConnection(false);
+        }
+    }
+
     public static <T> List<T> executeQueryWithoutPS(String queryString, boolean bypassCache)
     {
         try (Connection connection = getConnection();
@@ -542,16 +598,8 @@ public class EOI
         try
         {
             ResultSet resultSet = connection.getMetaData().getTables(null, null, tableNamePattern, new String[] {"TABLE"});
-            if (resultSet.next())
-            {
-                log.info("Found table " + tableNamePattern);
-                return true;
-            }
-            else
-            {
-                log.info("Did not find table " + tableNamePattern);
-                return false;
-            }
+
+            return resultSet.next();
         }
         catch (SQLException e)
         {
