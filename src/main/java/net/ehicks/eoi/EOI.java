@@ -335,7 +335,7 @@ public class EOI
 
     private static void createAudit(AuditUser auditUser, String eventType, DBMap dbMap, long objectId, Object object, String fieldName, String oldValue, String newValue)
     {
-        if (!dbMap.className.equals("Audit"))
+        if (!dbMap.className.contains("Audit"))
         {
             String objectKey = "";
             if (object != null)
