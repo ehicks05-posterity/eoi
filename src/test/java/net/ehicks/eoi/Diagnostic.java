@@ -17,6 +17,7 @@ public class Diagnostic
         try
         {
             runDiagnostic();
+            System.out.println("running diagnostic");
         }
         catch (Exception e)
         {
@@ -26,8 +27,8 @@ public class Diagnostic
 
     private static void runDiagnostic() throws IOException
     {
-//        EOI.init("jdbc:h2:mem:test;CACHE_SIZE=2097152;DB_CLOSE_ON_EXIT=FALSE");
-        EOI.init("jdbc:sqlserver://localhost\\SQLEXPRESS:1433;***REMOVED***");
+        EOI.init("jdbc:h2:mem:test;CACHE_SIZE=2097152;DB_CLOSE_ON_EXIT=FALSE");
+//        EOI.init("jdbc:sqlserver://localhost\\SQLEXPRESS:1433;***REMOVED***");
 
         AuditUser auditUser = new AuditUser()
         {

@@ -16,28 +16,34 @@ public class EOI
     private static Server server;
 
     public static HikariDataSource cp;
-    public static String databaseBrand = "";
+    public static DbBrand dbBrand;
     public static boolean enableCache = false;
     public static String poolName = "Primary Pool";
     public static ThreadLocal<Connection> conn = new ThreadLocal<>();
 
-    // example connectionString: jdbc:h2:~/test;TRACE_LEVEL_FILE=1;CACHE_SIZE=131072;SCHEMA=CINEMANG
     public static void init(String connectionString)
     {
         try
         {
             if (connectionString.contains("jdbc:h2"))
             {
-                databaseBrand = "h2";
+                dbBrand = DbBrand.H2;
                 server = Server.createTcpServer("-tcpAllowOthers").start();
             }
             if (connectionString.contains("jdbc:sqlserver"))
-                databaseBrand = "sqlserver";
-            log.info("EOI is connecting to {} db", databaseBrand);
+                dbBrand = DbBrand.SQL_SERVER;
+            if (connectionString.contains("jdbc:postgresql"))
+                dbBrand = DbBrand.POSTGRES;
+
+            log.info("EOI is connecting to {} db", dbBrand);
 
             cp = new HikariDataSource();
-            if (connectionString.contains("jdbc:sqlserver"))
+
+            if (dbBrand.equals(DbBrand.SQL_SERVER))
                 cp.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            if (dbBrand.equals(DbBrand.POSTGRES))
+                cp.setDriverClassName("org.postgresql.Driver");
+
             cp.setPoolName(poolName);
             cp.setMetricRegistry(Metrics.getMetricRegistry());
             cp.setJdbcUrl(connectionString);
@@ -51,7 +57,7 @@ public class EOI
     public static void destroy()
     {
         cp.close();
-        if (databaseBrand.equals("h2"))
+        if (dbBrand.equals(DbBrand.H2))
             server.stop();
     }
 
@@ -166,7 +172,7 @@ public class EOI
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         finally
         {
@@ -592,7 +598,16 @@ public class EOI
         if (obj == null) ps.setNull(argIndex, Types.NULL);
     }
 
+    /**
+     * Checks tableNamePattern, tableNamePattern.toUpper, and tableNamePattern.toLower
+     * <br>Uses DatabaseMetaData.getTables internally.
+     */
     public static boolean isTableExists(String tableNamePattern)
+    {
+        return _isTableExists(tableNamePattern) || _isTableExists(tableNamePattern.toUpperCase()) || _isTableExists(tableNamePattern.toLowerCase());
+    }
+
+    private static boolean _isTableExists(String tableNamePattern)
     {
         Connection connection = getConnection(true);
         try

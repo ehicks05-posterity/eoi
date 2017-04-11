@@ -55,7 +55,7 @@ public class ResultSetParser
                         list.add(resultSet.getInt(projectionColumn.columnLabel));
                     if (projectionColumn.type.equals("LONG"))
                     {
-                        if (EOI.databaseBrand.equals("sqlserver") && projectionColumn.columnLabel.equals("count(*)"))
+                        if ((EOI.dbBrand.equals(DbBrand.SQL_SERVER) || EOI.dbBrand.equals(DbBrand.POSTGRES)) && projectionColumn.columnLabel.equals("count(*)"))
                             list.add(resultSet.getLong(1));
                         else
                             list.add(resultSet.getLong(projectionColumn.columnLabel));
@@ -118,9 +118,16 @@ public class ResultSetParser
             method.invoke(object, resultSet.getTimestamp(field.columnName));
         if (field.type.equals("BLOB"))
         {
+            if (EOI.dbBrand.equals(DbBrand.POSTGRES))
+            {
+                byte[] bytes = resultSet.getBytes(field.columnName);
+                method.invoke(object, (Object) bytes);
+                return;
+            }
+
             Blob blob = resultSet.getBlob(field.columnName);
             int position = 0;
-            if (EOI.databaseBrand.equals("sqlserver"))
+            if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
                 position = 1;
             byte[] bytes = blob.getBytes(position, (int) blob.length());
             method.invoke(object, (Object) bytes);

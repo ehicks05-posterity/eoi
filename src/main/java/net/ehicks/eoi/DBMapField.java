@@ -40,13 +40,17 @@ public class DBMapField
         {
             if (declaredColumnDefinition.contains("auto_increment"))
             {
-                if (EOI.databaseBrand.equals("sqlserver"))
+                if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
                     declaredColumnDefinition = declaredColumnDefinition.replace("auto_increment", "IDENTITY(1,1)");
+                if (EOI.dbBrand.equals(DbBrand.POSTGRES))
+                    declaredColumnDefinition = declaredColumnDefinition.replace("bigint not null auto_increment primary key", "serial primary key");
             }
             if (declaredColumnDefinition.contains("varchar2(32000 CHAR)"))
             {
-                if (EOI.databaseBrand.equals("sqlserver"))
+                if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
                     declaredColumnDefinition = declaredColumnDefinition.replace("varchar2(32000 CHAR)", "varchar(max)");
+                if (EOI.dbBrand.equals(DbBrand.POSTGRES))
+                    declaredColumnDefinition = declaredColumnDefinition.replace("varchar2(32000 CHAR)", "text");
             }
             return declaredColumnDefinition;
         }
@@ -72,21 +76,23 @@ public class DBMapField
         }
         if (type.equals(DBMapField.TIMESTAMP))
         {
-            if (EOI.databaseBrand.equals("h2"))
+            if (EOI.dbBrand.equals(DbBrand.H2) || EOI.dbBrand.equals(DbBrand.POSTGRES))
                 columnDef += "timestamp";
-            if (EOI.databaseBrand.equals("sqlserver"))
+            if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
                 columnDef += "datetime";
         }
         if (type.equals(DBMapField.BLOB))
         {
-            if (EOI.databaseBrand.equals("sqlserver"))
+            if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
                 columnDef += "varbinary(max)";
+            if (EOI.dbBrand.equals(DbBrand.POSTGRES))
+                columnDef += "bytea";
             else
                 columnDef += "blob";
         }
         if (type.equals(DBMapField.BOOLEAN))
         {
-            if (EOI.databaseBrand.equals("sqlserver"))
+            if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
                 columnDef += "bit";
             else
                 columnDef += "boolean";
