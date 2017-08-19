@@ -27,7 +27,10 @@ public class Diagnostic
 
     private static void runDiagnostic() throws IOException
     {
-        EOI.init("jdbc:h2:mem:test;CACHE_SIZE=2097152;DB_CLOSE_ON_EXIT=FALSE");
+        ConnectionInfo connectionInfo = new ConnectionInfo(ConnectionInfo.DbMode.H2_MEM.toString(), "", "", "test", "",
+                "", "2097152", "", "");
+
+        EOI.init(connectionInfo);
 
         AuditUser auditUser = new AuditUser()
         {
@@ -71,6 +74,8 @@ public class Diagnostic
             System.out.println("We just created: " + project);
         }
 
+        printAllProjects();
+
         for (Project project : Project.getAll())
         {
             if (project.getId() == 1)
@@ -91,18 +96,7 @@ public class Diagnostic
             System.out.println("We just updated: " + project);
         }
 
-        for (Project project : Project.getAll())
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                if (i == 0) System.out.print(String.format("%-30s", project.getId()));
-                if (i == 1) System.out.print(String.format("%-30s", project.getName()));
-                if (i == 2) System.out.print(String.format("%-30s", project.getPrefix()));
-                if (i == 3) System.out.print(String.format("%-30s", project.getInceptDate()));
-                if (i == 4) System.out.print(String.format("%-30s", project.getLastUpdatedOn()));
-            }
-            System.out.println();
-        }
+        printAllProjects();
 
         for (Project project : Project.getAll())
         {
@@ -119,6 +113,22 @@ public class Diagnostic
 
         System.out.println("done");
         EOI.destroy();
+    }
+
+    private static void printAllProjects()
+    {
+        for (Project project : Project.getAll())
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                if (i == 0) System.out.print(String.format("%-30s", project.getId()));
+                if (i == 1) System.out.print(String.format("%-30s", project.getName()));
+                if (i == 2) System.out.print(String.format("%-30s", project.getPrefix()));
+                if (i == 3) System.out.print(String.format("%-30s", project.getInceptDate()));
+                if (i == 4) System.out.print(String.format("%-30s", project.getLastUpdatedOn()));
+            }
+            System.out.println();
+        }
     }
 
     private static void createTables()

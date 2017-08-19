@@ -13,40 +13,36 @@ import java.util.Date;
 public class EOI
 {
     private static final Logger log = LoggerFactory.getLogger(EOI.class);
-    private static Server server;
+    private static Server h2Server;
 
     public static HikariDataSource cp;
-    public static DbBrand dbBrand;
+    public static ConnectionInfo connectionInfo;
+    public static Dialect dialect;
     public static boolean enableCache = false;
     public static String poolName = "Primary Pool";
     public static ThreadLocal<Connection> conn = new ThreadLocal<>();
 
-    public static void init(String connectionString)
+    public static void init(ConnectionInfo connectionInfo)
     {
+        EOI.connectionInfo = connectionInfo;
         try
         {
-            if (connectionString.contains("jdbc:h2"))
-            {
-                dbBrand = DbBrand.H2;
-                server = Server.createTcpServer("-tcpAllowOthers").start();
-            }
-            if (connectionString.contains("jdbc:sqlserver"))
-                dbBrand = DbBrand.SQL_SERVER;
-            if (connectionString.contains("jdbc:postgresql"))
-                dbBrand = DbBrand.POSTGRES;
+            dialect = connectionInfo.getDialect();
+            if (connectionInfo.getDbMode().equals(ConnectionInfo.DbMode.H2_TCP.toString()))
+                h2Server = Server.createTcpServer("-tcpAllowOthers").start();
 
-            log.info("EOI is connecting to {} db", dbBrand);
+            log.info("EOI is connecting to {}", connectionInfo.getDbConnectionString(false));
 
             cp = new HikariDataSource();
 
-            if (dbBrand.equals(DbBrand.SQL_SERVER))
+            if (dialect.equals(Dialect.SQL_SERVER))
                 cp.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            if (dbBrand.equals(DbBrand.POSTGRES))
+            if (dialect.equals(Dialect.POSTGRES))
                 cp.setDriverClassName("org.postgresql.Driver");
 
             cp.setPoolName(poolName);
             cp.setMetricRegistry(Metrics.getMetricRegistry());
-            cp.setJdbcUrl(connectionString);
+            cp.setJdbcUrl(connectionInfo.getDbConnectionString(true));
         }
         catch (Exception e)
         {
@@ -57,8 +53,8 @@ public class EOI
     public static void destroy()
     {
         cp.close();
-        if (dbBrand.equals(DbBrand.H2))
-            server.stop();
+        if (connectionInfo.getDbMode().equals(ConnectionInfo.DbMode.H2_TCP.toString()))
+            h2Server.stop();
     }
 
     private static Connection getConnection()

@@ -1,6 +1,6 @@
 package net.ehicks.eoi;
 
-public enum DbBrand
+public enum Dialect
 {
     H2, SQL_SERVER, POSTGRES
 }

@@ -169,7 +169,7 @@ public class SQLGenerator
     public static String getLimitClause(String limit, String offset)
     {
         String limitClause = "";
-        if (EOI.dbBrand.equals(DbBrand.H2) || EOI.dbBrand.equals(DbBrand.POSTGRES))
+        if (EOI.dialect.equals(Dialect.H2) || EOI.dialect.equals(Dialect.POSTGRES))
         {
             if (limit.length() > 0)
                 limitClause += " limit " + limit;
@@ -177,7 +177,7 @@ public class SQLGenerator
                 limitClause += " offset " + offset;
         }
 
-        if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
+        if (EOI.dialect.equals(Dialect.SQL_SERVER))
         {
             // offset is mandatory with fetch
             limitClause += " offset " + offset + " rows ";

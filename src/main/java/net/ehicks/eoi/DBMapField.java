@@ -40,16 +40,16 @@ public class DBMapField
         {
             if (declaredColumnDefinition.contains("auto_increment"))
             {
-                if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
+                if (EOI.dialect.equals(Dialect.SQL_SERVER))
                     declaredColumnDefinition = declaredColumnDefinition.replace("auto_increment", "IDENTITY(1,1)");
-                if (EOI.dbBrand.equals(DbBrand.POSTGRES))
+                if (EOI.dialect.equals(Dialect.POSTGRES))
                     declaredColumnDefinition = declaredColumnDefinition.replace("bigint not null auto_increment primary key", "serial primary key");
             }
             if (declaredColumnDefinition.contains("varchar2(32000 CHAR)"))
             {
-                if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
+                if (EOI.dialect.equals(Dialect.SQL_SERVER))
                     declaredColumnDefinition = declaredColumnDefinition.replace("varchar2(32000 CHAR)", "varchar(max)");
-                if (EOI.dbBrand.equals(DbBrand.POSTGRES))
+                if (EOI.dialect.equals(Dialect.POSTGRES))
                     declaredColumnDefinition = declaredColumnDefinition.replace("varchar2(32000 CHAR)", "text");
             }
             return declaredColumnDefinition;
@@ -76,23 +76,23 @@ public class DBMapField
         }
         if (type.equals(DBMapField.TIMESTAMP))
         {
-            if (EOI.dbBrand.equals(DbBrand.H2) || EOI.dbBrand.equals(DbBrand.POSTGRES))
+            if (EOI.dialect.equals(Dialect.H2) || EOI.dialect.equals(Dialect.POSTGRES))
                 columnDef += "timestamp";
-            if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
+            if (EOI.dialect.equals(Dialect.SQL_SERVER))
                 columnDef += "datetime";
         }
         if (type.equals(DBMapField.BLOB))
         {
-            if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
+            if (EOI.dialect.equals(Dialect.SQL_SERVER))
                 columnDef += "varbinary(max)";
-            if (EOI.dbBrand.equals(DbBrand.POSTGRES))
+            if (EOI.dialect.equals(Dialect.POSTGRES))
                 columnDef += "bytea";
             else
                 columnDef += "blob";
         }
         if (type.equals(DBMapField.BOOLEAN))
         {
-            if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
+            if (EOI.dialect.equals(Dialect.SQL_SERVER))
                 columnDef += "bit";
             else
                 columnDef += "boolean";

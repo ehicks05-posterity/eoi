@@ -13,34 +13,35 @@ public class EOIBackup
 
     public static String getBackupExtension()
     {
-        if (EOI.dbBrand.equals(DbBrand.H2))
+        if (EOI.dialect.equals(Dialect.H2))
             return ".sql";
-        if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
+        if (EOI.dialect.equals(Dialect.SQL_SERVER))
             return ".bak";
         return ".dump";
     }
 
     public static void backup(String backupPath)
     {
-        backup(backupPath, null, null, null, null, null, null);
+        backup(backupPath, null);
     }
 
-    public static void backup(String backupPath, String exePath, String dbHost, String dbPort, String dbName, String dbUser, String dbPass)
+    public static void backup(String backupPath, ConnectionInfo connectionInfo)
     {
-        if (EOI.dbBrand.equals(DbBrand.H2))
+        if (EOI.dialect.equals(Dialect.H2))
             EOI.executeQuery("script to '" + backupPath + "'");
-        if (EOI.dbBrand.equals(DbBrand.SQL_SERVER))
-            EOI.execute("BACKUP DATABASE " + dbName + " TO DISK = '" + backupPath + "' WITH FORMAT;");
-        if (EOI.dbBrand.equals(DbBrand.POSTGRES))
+        if (EOI.dialect.equals(Dialect.SQL_SERVER))
+            EOI.execute("BACKUP DATABASE " + connectionInfo.getDbName() + " TO DISK = '" + backupPath + "' WITH FORMAT;");
+        if (EOI.dialect.equals(Dialect.POSTGRES))
         {
-            String host = "--host=" + dbHost;
-            String port = "--port=" + dbPort;
-            String user = "--username=" + dbUser;
-            String pass = "--password=" + dbPass;
+            String host = "--host="     + connectionInfo.getDbHost();
+            String port = "--port="     + connectionInfo.getDbPort();
+            String user = "--username=" + connectionInfo.getDbUser();
+            String pass = "--password=" + connectionInfo.getDbPass();
             String file = "--file=" + backupPath;
             String format = "--format=custom";
 
-            ProcessBuilder builder = new ProcessBuilder(exePath, host, port, user, pass, file, format, "-w", dbName);
+            ProcessBuilder builder = new ProcessBuilder(connectionInfo.getPgDumpPath(), host, port, user, pass, file,
+                    format, "-w", connectionInfo.getDbName());
             builder.redirectErrorStream(true);
 
             try
