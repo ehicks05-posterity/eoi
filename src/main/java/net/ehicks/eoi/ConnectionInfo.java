@@ -18,6 +18,10 @@ public class ConnectionInfo
         H2_MEM, H2_TCP, SQLSERVER, POSTGRESQL
     }
 
+    public ConnectionInfo()
+    {
+    }
+
     public ConnectionInfo(String dbMode, String dbHost, String dbPort, String dbName, String dbUser, String dbPass, String h2DbCacheKBs, String pgDumpPath, String sqlserverServerInstance)
     {
         this.dbMode = dbMode;
