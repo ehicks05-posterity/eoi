@@ -32,6 +32,8 @@ public class Diagnostic
 
         EOI.init(connectionInfo);
 
+        System.out.println(connectionInfo);
+
         AuditUser auditUser = new AuditUser()
         {
             @Override

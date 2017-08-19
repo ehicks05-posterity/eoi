@@ -18,6 +18,22 @@ public class ConnectionInfo
         H2_MEM, H2_TCP, SQLSERVER, POSTGRESQL
     }
 
+    @Override
+    public String toString()
+    {
+        return "ConnectionInfo{" +
+                "dbMode='" + dbMode + '\'' +
+                ", dbHost='" + dbHost + '\'' +
+                ", dbPort='" + dbPort + '\'' +
+                ", dbName='" + dbName + '\'' +
+                ", dbUser='" + dbUser + '\'' +
+                ", dbPass='" + "****" + '\'' +
+                ", h2DbCacheKBs='" + h2DbCacheKBs + '\'' +
+                ", pgDumpPath='" + pgDumpPath + '\'' +
+                ", sqlserverServerInstance='" + sqlserverServerInstance + '\'' +
+                '}';
+    }
+
     public ConnectionInfo()
     {
     }
@@ -77,9 +93,19 @@ public class ConnectionInfo
         return dbMode;
     }
 
+    public void setDbMode(String dbMode)
+    {
+        this.dbMode = dbMode;
+    }
+
     public String getDbHost()
     {
         return dbHost;
+    }
+
+    public void setDbHost(String dbHost)
+    {
+        this.dbHost = dbHost;
     }
 
     public String getDbPort()
@@ -87,9 +113,19 @@ public class ConnectionInfo
         return dbPort;
     }
 
+    public void setDbPort(String dbPort)
+    {
+        this.dbPort = dbPort;
+    }
+
     public String getDbName()
     {
         return dbName;
+    }
+
+    public void setDbName(String dbName)
+    {
+        this.dbName = dbName;
     }
 
     public String getDbUser()
@@ -97,9 +133,19 @@ public class ConnectionInfo
         return dbUser;
     }
 
+    public void setDbUser(String dbUser)
+    {
+        this.dbUser = dbUser;
+    }
+
     public String getDbPass()
     {
         return dbPass;
+    }
+
+    public void setDbPass(String dbPass)
+    {
+        this.dbPass = dbPass;
     }
 
     public String getH2DbCacheKBs()
@@ -107,13 +153,28 @@ public class ConnectionInfo
         return h2DbCacheKBs;
     }
 
+    public void setH2DbCacheKBs(String h2DbCacheKBs)
+    {
+        this.h2DbCacheKBs = h2DbCacheKBs;
+    }
+
     public String getPgDumpPath()
     {
         return pgDumpPath;
     }
 
+    public void setPgDumpPath(String pgDumpPath)
+    {
+        this.pgDumpPath = pgDumpPath;
+    }
+
     public String getSqlserverServerInstance()
     {
         return sqlserverServerInstance;
+    }
+
+    public void setSqlserverServerInstance(String sqlserverServerInstance)
+    {
+        this.sqlserverServerInstance = sqlserverServerInstance;
     }
 }
