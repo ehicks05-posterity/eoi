@@ -35,6 +35,8 @@ public class EOI
 
             cp = new HikariDataSource();
 
+            if (dialect.equals(Dialect.H2))
+                cp.setDriverClassName("org.h2.Driver");
             if (dialect.equals(Dialect.SQL_SERVER))
                 cp.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             if (dialect.equals(Dialect.POSTGRES))

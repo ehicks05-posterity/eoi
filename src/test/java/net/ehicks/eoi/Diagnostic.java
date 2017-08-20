@@ -16,8 +16,8 @@ public class Diagnostic
     {
         try
         {
-            runDiagnostic();
             System.out.println("running diagnostic");
+            runDiagnostic();
         }
         catch (Exception e)
         {
@@ -51,10 +51,13 @@ public class Diagnostic
 
         DBMap.loadDbMaps(new File("src/main/java/net/ehicks/eoi/diagnostic").getCanonicalPath(), "net.ehicks.eoi.diagnostic");
 
+        System.out.println("\r\nDrop tables:");
         dropTables();
 
+        System.out.println("\r\nCreate tables:");
         createTables();
 
+        System.out.println("\r\nAdd some rows:");
         List<Project> projects = Project.getAll();
         if (projects.size() == 0)
         {
@@ -78,6 +81,7 @@ public class Diagnostic
 
         printAllProjects();
 
+        System.out.println("\r\nUpdate some rows:");
         for (Project project : Project.getAll())
         {
             if (project.getId() == 1)
@@ -108,6 +112,7 @@ public class Diagnostic
 
         EOI.executeQuery("select * from projects where id in (?,?,?,?,?)", Arrays.asList(1,2,3,4,5));
 
+        System.out.println("\r\nTest Metrics:");
         for (String key : Metrics.getMetrics().keySet())
         {
             System.out.println(key + " -> " + Metrics.getMetrics().get(key));
