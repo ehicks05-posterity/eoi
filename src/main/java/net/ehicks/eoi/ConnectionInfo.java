@@ -67,14 +67,14 @@ public class ConnectionInfo
         String connectionString = "";
         String password = showPassword ? dbPass : "****";
 
-        String h2Settings = "TRACE_LEVEL_FILE=1;DB_CLOSE_ON_EXIT=FALSE;COMPRESS=TRUE;CACHE_SIZE=" + h2DbCacheKBs + ";";
+        String h2Settings = "TRACE_LEVEL_FILE=1;DB_CLOSE_ON_EXIT=FALSE;COMPRESS=TRUE;";
         if (getDbMode().equals(DbMode.H2_MEM.name()))
         {
-            connectionString += "jdbc:h2:mem:" + h2Settings;
+            connectionString += "jdbc:h2:mem:" + dbName + ";" + h2Settings;
         }
         if (getDbMode().equals(DbMode.H2_TCP.name()))
         {
-            connectionString += "jdbc:h2:tcp://" + dbHost + ":" + dbPort + "/" + dbName + ";" + h2Settings;
+            connectionString += "jdbc:h2:tcp://" + dbHost + ":" + dbPort + "/" + dbName + ";" + h2Settings + "CACHE_SIZE=" + h2DbCacheKBs + ";";
         }
         if (getDbMode().equals(DbMode.SQLSERVER.name()))
         {

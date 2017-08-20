@@ -123,9 +123,9 @@ public class Diagnostic
         {
             for (int i = 0; i < 5; i++)
             {
-                if (i == 0) System.out.print(String.format("%-30s", project.getId()));
-                if (i == 1) System.out.print(String.format("%-30s", project.getName()));
-                if (i == 2) System.out.print(String.format("%-30s", project.getPrefix()));
+                if (i == 0) System.out.print(String.format("%-5s", project.getId()));
+                if (i == 1) System.out.print(String.format("%-20s", project.getName()));
+                if (i == 2) System.out.print(String.format("%-5s", project.getPrefix()));
                 if (i == 3) System.out.print(String.format("%-30s", project.getInceptDate()));
                 if (i == 4) System.out.print(String.format("%-30s", project.getLastUpdatedOn()));
             }
