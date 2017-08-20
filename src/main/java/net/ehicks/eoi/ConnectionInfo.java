@@ -70,7 +70,7 @@ public class ConnectionInfo
         String h2Settings = "TRACE_LEVEL_FILE=1;DB_CLOSE_ON_EXIT=FALSE;COMPRESS=TRUE;";
         if (getDbMode().equals(DbMode.H2_MEM.name()))
         {
-            connectionString += "jdbc:h2:mem:" + dbName;
+            connectionString += "jdbc:h2:mem:" + dbName + ";" + "DB_CLOSE_DELAY=-1";
         }
         if (getDbMode().equals(DbMode.H2_TCP.name()))
         {

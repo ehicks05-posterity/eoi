@@ -28,7 +28,7 @@ public class EOI
         try
         {
             dialect = connectionInfo.getDialect();
-            if (connectionInfo.getDbMode().equals(ConnectionInfo.DbMode.H2_TCP.toString()))
+            if (dialect.equals(Dialect.H2))
                 h2Server = Server.createTcpServer("-tcpAllowOthers").start();
 
             log.info("EOI is connecting to {}", connectionInfo.getDbConnectionString(false));
