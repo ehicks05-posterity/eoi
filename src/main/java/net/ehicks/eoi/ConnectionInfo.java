@@ -53,7 +53,7 @@ public class ConnectionInfo
 
     public Dialect getDialect()
     {
-        if (dbMode.equals(DbMode.H2_MEM.toString()))
+        if (dbMode.equals(DbMode.H2_MEM.toString()) || dbMode.equals(DbMode.H2_TCP.toString()))
             return Dialect.H2;
         if (dbMode.equals(DbMode.SQLSERVER.toString()))
             return Dialect.SQL_SERVER;
