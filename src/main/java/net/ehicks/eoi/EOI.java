@@ -624,4 +624,35 @@ public class EOI
         }
         return false;
     }
+
+    /**
+     * Checks tableNamePattern, tableNamePattern.toUpper, and tableNamePattern.toLower
+     * <br>Uses DatabaseMetaData.getTables internally.
+     */
+    public static boolean isColumnExists(String tableNamePattern, String columnNamePattern)
+    {
+        return _isColumnExists(tableNamePattern, columnNamePattern)
+                || _isColumnExists(tableNamePattern.toUpperCase(), columnNamePattern.toUpperCase())
+                || _isColumnExists(tableNamePattern.toLowerCase(), columnNamePattern.toLowerCase());
+    }
+
+    private static boolean _isColumnExists(String tableNamePattern, String columnNamePattern)
+    {
+        Connection connection = getConnection(true);
+        try
+        {
+            ResultSet resultSet = connection.getMetaData().getColumns(null, null, tableNamePattern, columnNamePattern);
+
+            return resultSet.next();
+        }
+        catch (SQLException e)
+        {
+            log.error(e.getMessage(), e);
+        }
+        finally
+        {
+            closeConnection(true);
+        }
+        return false;
+    }
 }

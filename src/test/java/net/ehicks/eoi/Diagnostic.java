@@ -118,6 +118,26 @@ public class Diagnostic
             System.out.println(key + " -> " + Metrics.getMetrics().get(key));
         }
 
+
+        System.out.println("\r\nTest migrator:");
+        DBMap projectDbMap = DBMap.dbMaps.get(1);
+        projectDbMap.tableName = projectDbMap.tableName + "_TEST";
+        SQLMigrator.migrate(Arrays.asList(projectDbMap));
+
+        System.out.println("\r\nAdd some rows:");
+        projects = Project.getAll();
+        if (projects.size() == 0)
+        {
+            Project project = new Project();
+            project.setName("Genesis");
+            project.setPrefix("GS");
+            long newId = EOI.insert(project, auditUser);
+        }
+        for (Object result : EOI.executeQuery("select * from projects_test"))
+            System.out.println(result);
+
+        printAllProjects();
+
         System.out.println("done");
         EOI.destroy();
     }
