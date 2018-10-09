@@ -14,14 +14,10 @@ dependencies {
     compile 'com.github.ehicks05:common:-SNAPSHOT'
 
     compile 'org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final'
-    compile 'org.slf4j:slf4j-api:1.7.22'
-    compile 'org.slf4j:slf4j-log4j12:1.7.22'
-    compile 'log4j:apache-log4j-extras:1.2.17'
+    compile 'org.slf4j:slf4j-api:1.7.25'
     compile 'io.dropwizard.metrics:metrics-core:3.2.0'
 
     compile 'com.h2database:h2:1.4.196'
-//    compile 'com.microsoft.sqlserver:mssql-jdbc:6.1.0.jre8'
-//    compile 'org.postgresql:postgresql:42.0.0'
 
     compile 'com.zaxxer:HikariCP:2.6.3'
     
