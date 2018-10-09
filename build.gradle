@@ -8,18 +8,9 @@ apply plugin: 'maven'
 repositories {
     mavenCentral()
     maven { url "https://jitpack.io" }
-//    maven
-//    {
-//        url "$artifactory_contextUrl/libs-snapshot-local/"
-//        credentials{
-//            username = "$artifactory_user"
-//            password = "$artifactory_password"
-//        }
-//    }
 }
 
 dependencies {
-//    compile 'net.ehicks:common:1.0-SNAPSHOT'
     compile 'com.github.ehicks05:common:-SNAPSHOT'
 
     compile 'org.hibernate.javax.persistence:hibernate-jpa-2.0-api:1.0.1.Final'
@@ -29,8 +20,8 @@ dependencies {
     compile 'io.dropwizard.metrics:metrics-core:3.2.0'
 
     compile 'com.h2database:h2:1.4.196'
-    compile 'com.microsoft.sqlserver:mssql-jdbc:6.1.0.jre8'
-    compile 'org.postgresql:postgresql:42.0.0'
+//    compile 'com.microsoft.sqlserver:mssql-jdbc:6.1.0.jre8'
+//    compile 'org.postgresql:postgresql:42.0.0'
 
     compile 'com.zaxxer:HikariCP:2.6.3'
     
@@ -46,14 +37,3 @@ idea{
         downloadSources = true
     }
 }
-
-//uploadArchives {
-//    repositories {
-//        mavenDeployer {
-//            repository(url: "$artifactory_contextUrl/libs-snapshot-local/"){
-//                authentication(userName: "$artifactory_user", password: "$artifactory_password")
-//            }
-//            pom.version = '1.0-SNAPSHOT'
-//        }
-//    }
-//}
