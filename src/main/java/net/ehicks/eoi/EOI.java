@@ -155,6 +155,8 @@ public class EOI
     // for INSERT, UPDATE, or DELETE, or DDL statements
     public static int executeUpdate(String queryString)
     {
+        log.debug("executeUpdate(), Query: {}", queryString);
+
         Connection connection = getConnection();
         try
         {
@@ -183,6 +185,8 @@ public class EOI
     // for INSERT, UPDATE, or DELETE, or DDL statements
     public static int executePreparedUpdate(String queryString, List<Object> args)
     {
+        log.debug("executePreparedUpdate(), Query: {}, Args: {}", queryString, args);
+
         Connection connection = getConnection();
         try (PreparedStatement preparedStatement = connection.prepareStatement(queryString);)
         {
@@ -207,6 +211,8 @@ public class EOI
 
     public static void execute(String queryString)
     {
+        log.debug("execute(), Query: {}", queryString);
+
         try (Connection connection = getConnection();
              Statement statement = connection.createStatement();)
         {
@@ -246,6 +252,8 @@ public class EOI
 
     private static long _insert(Object object, AuditUser auditUser)
     {
+        log.debug("_insert(), Object: {}", object);
+
         String insertStatement = SQLGenerator.getInsertStatement(object);
 
         Connection connection = getConnection();
@@ -296,6 +304,8 @@ public class EOI
 
     public static long batchInsert(List<?> objects)
     {
+        log.debug("batchInsert(), Class: {}", objects.getClass().toString());
+
         String insertStatement = SQLGenerator.getInsertStatement(objects.get(0));
 
         Connection connection = getConnection();
@@ -379,6 +389,7 @@ public class EOI
 
     private static int _update(Object object, AuditUser auditUser)
     {
+        log.debug("_update(), Object: {}", object);
         PSIngredients psIngredients = SQLGenerator.getUpdateStatement(object);
         if (psIngredients == null)
             return 0;
@@ -449,6 +460,8 @@ public class EOI
 
     public static <T> List<T> executeQuery(String queryString, List<Object> args, boolean bypassCache)
     {
+        log.debug("executeQuery(), Query: {}, Args: {}", queryString, args);
+
         Connection connection = getConnection();
         try (PreparedStatement preparedStatement = connection.prepareStatement(queryString))
         {
@@ -486,6 +499,8 @@ public class EOI
     
     public static Map<String, List<Object>> getPrintableResult(String queryString, List<Object> args) throws SQLException
     {
+        log.debug("getPrintableResult(), Query: {}, Args: {}", queryString, args);
+
         Connection connection = getConnection();
         try (PreparedStatement preparedStatement = connection.prepareStatement(queryString))
         {

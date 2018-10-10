@@ -1,39 +1,41 @@
 package net.ehicks.eoi;
 
 import net.ehicks.eoi.diagnostic.Project;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class Diagnostic
+class Diagnostic
 {
-    @Test
-    public void main() throws IOException, ClassNotFoundException
-    {
-        try
-        {
-            System.out.println("running diagnostic");
-            runDiagnostic();
-        }
-        catch (Exception e)
-        {
-            System.out.println(e.getMessage());
-        }
-    }
+    private static final Logger log = LoggerFactory.getLogger(Diagnostic.class);
 
-    private static void runDiagnostic() throws IOException
+    @BeforeAll
+    static void init()
     {
-        ConnectionInfo connectionInfo = new ConnectionInfo(ConnectionInfo.DbMode.H2_MEM.toString(), "", "", "test", "",
-                "", "2097152", "", "");
+        ConnectionInfo connectionInfo = new ConnectionInfo(ConnectionInfo.DbMode.H2_MEM.toString(), "", "", "test",
+                "", "", "2097152", "", "");
 
         EOI.init(connectionInfo);
+    }
 
-        System.out.println(connectionInfo);
+    @AfterAll
+    static void destroy()
+    {
+        EOI.destroy();
+    }
 
+    @Test
+    void mainDiagnostic() throws IOException
+    {
         AuditUser auditUser = new AuditUser()
         {
             @Override
@@ -51,13 +53,9 @@ public class Diagnostic
 
         DBMap.loadDbMaps(new File("src/main/java/net/ehicks/eoi/diagnostic").getCanonicalPath(), "net.ehicks.eoi.diagnostic");
 
-        System.out.println("\r\nDrop tables:");
         dropTables();
-
-        System.out.println("\r\nCreate tables:");
         createTables();
 
-        System.out.println("\r\nAdd some rows:");
         List<Project> projects = Project.getAll();
         if (projects.size() == 0)
         {
@@ -67,7 +65,7 @@ public class Diagnostic
             long newId = EOI.insert(project, auditUser);
 
             project = Project.getById(newId);
-            System.out.println("We just created: " + project);
+            log.info("Added a project: {}", projectToString(project));
 
             project = new Project();
             project.setName("SchoolFI");
@@ -76,12 +74,9 @@ public class Diagnostic
             newId = EOI.insert(project, auditUser);
 
             project = Project.getById(newId);
-            System.out.println("We just created: " + project);
+            log.info("Added a project: {}", projectToString(project));
         }
 
-        printAllProjects();
-
-        System.out.println("\r\nUpdate some rows:");
         for (Project project : Project.getAll())
         {
             if (project.getId() == 1)
@@ -90,6 +85,7 @@ public class Diagnostic
                 project.setPrefix("WP");
                 project.setInceptDate(new Date());
                 EOI.update(project, auditUser);
+                log.info("Updated a project: {}", projectToString(project));
             }
             if (project.getId() == 2)
             {
@@ -97,65 +93,49 @@ public class Diagnostic
                 project.setPrefix("WB");
                 project.setInceptDate(null);
                 EOI.update(project, auditUser);
+                log.info("Updated a project: {}", projectToString(project));
             }
-
-            System.out.println("We just updated: " + project);
         }
-
-        printAllProjects();
 
         for (Project project : Project.getAll())
         {
             EOI.executeDelete(project, auditUser);
-            System.out.println("We just deleted: " + project);
+            log.info("Deleted a project: {}", projectToString(project));
         }
 
         EOI.executeQuery("select * from projects where id in (?,?,?,?,?)", Arrays.asList(1,2,3,4,5));
 
-        System.out.println("\r\nTest Metrics:");
-        for (String key : Metrics.getMetrics().keySet())
-        {
-            System.out.println(key + " -> " + Metrics.getMetrics().get(key));
-        }
-
-
-        System.out.println("\r\nTest migrator:");
+        log.info("Test migrator:");
         DBMap projectDbMap = DBMap.dbMaps.get(1);
         projectDbMap.tableName = projectDbMap.tableName + "_TEST";
-        SQLMigrator.migrate(Arrays.asList(projectDbMap));
+        SQLMigrator.migrate(Collections.singletonList(projectDbMap));
 
-        System.out.println("\r\nAdd some rows:");
+        log.info("Add some rows:");
         projects = Project.getAll();
         if (projects.size() == 0)
         {
             Project project = new Project();
             project.setName("Genesis");
             project.setPrefix("GS");
-            long newId = EOI.insert(project, auditUser);
+            EOI.insert(project, auditUser);
+            log.info("We just added a project: {}", projectToString(project));
         }
         for (Object result : EOI.executeQuery("select * from projects_test"))
-            System.out.println(result);
+            log.info("result: {}", result);
 
-        printAllProjects();
-
-        System.out.println("done");
-        EOI.destroy();
+        log.info("done");
     }
 
-    private static void printAllProjects()
+    @Test
+    void metricsDiagnostic()
     {
-        for (Project project : Project.getAll())
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                if (i == 0) System.out.print(String.format("%-5s", project.getId()));
-                if (i == 1) System.out.print(String.format("%-20s", project.getName()));
-                if (i == 2) System.out.print(String.format("%-5s", project.getPrefix()));
-                if (i == 3) System.out.print(String.format("%-30s", project.getInceptDate()));
-                if (i == 4) System.out.print(String.format("%-30s", project.getLastUpdatedOn()));
-            }
-            System.out.println();
-        }
+        for (String key : Metrics.getMetrics().keySet())
+            log.info(key + " -> " + Metrics.getMetrics().get(key));
+    }
+
+    private static String projectToString(Project project)
+    {
+        return project.getId() + " " + project.getName() + " " + project.getPrefix() + " " + project.getInceptDate() + " " + project.getLastUpdatedOn();
     }
 
     private static void createTables()
@@ -165,12 +145,12 @@ public class Diagnostic
         for (DBMap dbMap : DBMap.dbMaps)
             if (!EOI.isTableExists(dbMap.tableName))
             {
-                System.out.println("Creating table " + dbMap.tableName + "...");
+                log.info("Creating table " + dbMap.tableName + "...");
                 String createTableStatement = SQLGenerator.getCreateTableStatement(dbMap);
-                System.out.println(createTableStatement);
+                log.info(createTableStatement);
                 EOI.executeUpdate(createTableStatement);
             }
-        System.out.println("Made sure all tables exist (creating if necessary) in " + (System.currentTimeMillis() - subTaskStart) + "ms");
+        log.info("Made sure all tables exist (creating if necessary) in " + (System.currentTimeMillis() - subTaskStart) + "ms");
     }
 
     private static void dropTables()
@@ -181,10 +161,10 @@ public class Diagnostic
         {
             if (EOI.isTableExists(dbMap.tableName))
             {
-                System.out.println("Dropping " + dbMap.tableName + "...");
+                log.info("Dropping " + dbMap.tableName + "...");
                 EOI.executeUpdate("drop table " + dbMap.tableName);
             }
         }
-        System.out.println("Dropped existing tables in " + (System.currentTimeMillis() - subTaskStart) + "ms");
+        log.info("Dropped existing tables in " + (System.currentTimeMillis() - subTaskStart) + "ms");
     }
 }
