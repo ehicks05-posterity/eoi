@@ -9,22 +9,23 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 class Diagnostic
 {
     private static final Logger log = LoggerFactory.getLogger(Diagnostic.class);
 
     @BeforeAll
-    static void init()
+    static void init() throws IOException
     {
         ConnectionInfo connectionInfo = new ConnectionInfo(ConnectionInfo.DbMode.H2_MEM.toString(), "", "", "test",
                 "", "", "2097152", "", "");
 
         EOI.init(connectionInfo);
+
+        DBMap.loadDbMaps(new File("src/main/java/net/ehicks/eoi/diagnostic").getCanonicalPath(), "net.ehicks.eoi.diagnostic");
+        dropTables();
+        createTables();
     }
 
     @AfterAll
@@ -50,11 +51,6 @@ class Diagnostic
                 return "";
             }
         };
-
-        DBMap.loadDbMaps(new File("src/main/java/net/ehicks/eoi/diagnostic").getCanonicalPath(), "net.ehicks.eoi.diagnostic");
-
-        dropTables();
-        createTables();
 
         List<Project> projects = Project.getAll();
         if (projects.size() == 0)
@@ -122,15 +118,15 @@ class Diagnostic
         }
         for (Object result : EOI.executeQuery("select * from projects_test"))
             log.info("result: {}", result);
-
-        log.info("done");
     }
 
     @Test
     void metricsDiagnostic()
     {
-        for (String key : Metrics.getMetrics().keySet())
-            log.info(key + " -> " + Metrics.getMetrics().get(key));
+        Map<String, String> metrics = Metrics.getMetrics();
+
+        for (String key : metrics.keySet())
+            log.info(key + " -> " + metrics.get(key));
     }
 
     private static String projectToString(Project project)
