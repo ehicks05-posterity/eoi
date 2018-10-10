@@ -41,7 +41,7 @@ public class EOIBackup
             String format = "--format=custom";
 
             ProcessBuilder builder = new ProcessBuilder(connectionInfo.getPgDumpPath(), host, port, user, file,
-                    format, "-w", "--verbose", connectionInfo.getDbName());
+                    format, "--verbose", connectionInfo.getDbName());
             builder.redirectErrorStream(true);
 
             try
