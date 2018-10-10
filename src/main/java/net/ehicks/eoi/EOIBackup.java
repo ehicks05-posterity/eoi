@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 public class EOIBackup
 {
@@ -44,24 +45,30 @@ public class EOIBackup
                     format, "--verbose", "-w", connectionInfo.getDbName());
             builder.redirectErrorStream(true);
 
+            Map<String, String> env = builder.environment();
+            env.put("PGPASSWORD", connectionInfo.getDbPass());
+
             try
             {
                 Process process = builder.start();
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                StringBuilder stringBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null)
-                {
-                    stringBuilder.append(line);
-                    stringBuilder.append(System.getProperty("line.separator"));
-                }
+                new Thread(() -> {
+                    try
+                    {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                        String line;
+                        while ((line = reader.readLine()) != null)
+                            log.info(line);
+                    }
+                    catch (IOException e)
+                    {
+                        log.error(e.getMessage(), e);
+                    }
+                }).start();
 
-                String result = stringBuilder.toString();
-                if (result.length() > 0)
-                    log.info(result);
+                process.waitFor();
             }
-            catch (IOException e)
+            catch (Exception e)
             {
                 log.error(e.getMessage(), e);
             }
