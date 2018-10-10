@@ -282,7 +282,7 @@ public class EOI
                 return 0;
 
             long generatedKey = generatedKeysResultSet.getLong(1);
-            log.debug("_insert(), Object Class: {}, Generated Key", object.getClass().toString(), generatedKey);
+            log.debug("_insert(), Object Class: {}, Generated Key: {}", object.getClass().toString(), generatedKey);
 
             // prepare audit
             createAudit(auditUser, "INSERT", dbMap, generatedKey);
