@@ -252,8 +252,6 @@ public class EOI
 
     private static long _insert(Object object, AuditUser auditUser)
     {
-        log.debug("_insert(), Object: {}", object);
-
         String insertStatement = SQLGenerator.getInsertStatement(object);
 
         Connection connection = getConnection();
@@ -284,6 +282,7 @@ public class EOI
                 return 0;
 
             long generatedKey = generatedKeysResultSet.getLong(1);
+            log.debug("_insert(), Object Class: {}, Generated Key", object.getClass().toString(), generatedKey);
 
             // prepare audit
             createAudit(auditUser, "INSERT", dbMap, generatedKey);
