@@ -36,12 +36,12 @@ public class EOIBackup
             String host = "--host="     + connectionInfo.getDbHost();
             String port = "--port="     + connectionInfo.getDbPort();
             String user = "--username=" + connectionInfo.getDbUser();
-//            String pass = "--password=" + connectionInfo.getDbPass();
+            String pass = "--password=" + connectionInfo.getDbPass();
             String file = "--file=" + backupPath;
             String format = "--format=custom";
 
-            ProcessBuilder builder = new ProcessBuilder(connectionInfo.getPgDumpPath(), host, port, user, file,
-                    format, "--verbose", connectionInfo.getDbName());
+            ProcessBuilder builder = new ProcessBuilder(connectionInfo.getPgDumpPath(), host, port, user, pass, file,
+                    format, "--verbose", "-w", connectionInfo.getDbName());
             builder.redirectErrorStream(true);
 
             try
