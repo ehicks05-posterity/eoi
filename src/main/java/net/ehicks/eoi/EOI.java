@@ -21,6 +21,7 @@ public class EOI
     public static boolean enableCache = false;
     public static String poolName = "Primary Pool";
     public static ThreadLocal<Connection> conn = new ThreadLocal<>();
+    public static int slowQueryThreshold = 100;
 
     public static void init(ConnectionInfo connectionInfo)
     {
@@ -57,6 +58,16 @@ public class EOI
         cp.close();
         if (connectionInfo.getDbMode().equals(ConnectionInfo.DbMode.H2_TCP.toString()))
             h2Server.stop();
+    }
+
+    public static int getSlowQueryThreshold()
+    {
+        return slowQueryThreshold;
+    }
+
+    public static void setSlowQueryThreshold(int slowQueryThreshold)
+    {
+        EOI.slowQueryThreshold = slowQueryThreshold;
     }
 
     private static Connection getConnection()
@@ -471,7 +482,7 @@ public class EOI
             long start = System.currentTimeMillis();
             ResultSet resultSet = preparedStatement.executeQuery();
             long end = System.currentTimeMillis();
-            if (end - start >= 100)
+            if (end - start >= slowQueryThreshold)
             {
                 String message = "EOI QUERY took {} ms: {}. Args: {}";
                 log.info(message, (end - start), queryString, args);
@@ -510,7 +521,7 @@ public class EOI
             long start = System.currentTimeMillis();
             ResultSet resultSet = preparedStatement.executeQuery();
             long end = System.currentTimeMillis();
-            if (end - start >= 100)
+            if (end - start >= slowQueryThreshold)
             {
                 String message = "EOI QUERY took {} ms: {}. Args: {}";
                 log.info(message, (end - start), queryString, args);

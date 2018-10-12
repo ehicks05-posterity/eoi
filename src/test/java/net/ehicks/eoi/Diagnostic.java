@@ -22,6 +22,7 @@ class Diagnostic
                 "", "", "2097152", "", "");
 
         EOI.init(connectionInfo);
+        EOI.setSlowQueryThreshold(1);
 
         DBMap.loadDbMaps(new File("src/main/java/net/ehicks/eoi/diagnostic").getCanonicalPath(), "net.ehicks.eoi.diagnostic");
         dropTables();
