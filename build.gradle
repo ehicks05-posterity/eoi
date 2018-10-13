@@ -10,8 +10,7 @@ apply plugin: 'idea'
 apply plugin: 'maven'
 
 repositories {
-    jcenter()
-//    mavenCentral()
+    mavenCentral()
     maven { url "https://jitpack.io" }
 }
 
