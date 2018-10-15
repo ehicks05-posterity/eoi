@@ -179,7 +179,19 @@ public class SQLGenerator
         int indexOfFrom = query.indexOf("from");
         query = query.substring(indexOfFrom);
 
-        return "count_estimate('select 1 " + query.replaceAll("'", "''") + "')";
+        int indexOfOrderBy = query.indexOf("order by");
+        if (indexOfOrderBy != -1)
+            query = query.substring(0, indexOfOrderBy);
+
+        int indexOfGroupBy = query.indexOf("group by");
+        if (indexOfGroupBy != -1)
+            query = query.substring(0, indexOfGroupBy);
+
+        int indexOfHaving = query.indexOf(" having ");
+        if (indexOfHaving != -1)
+            query = query.substring(0, indexOfHaving);
+
+        return "select count_estimate('select 1 " + query.replaceAll("'", "''") + "')";
     }
 
     public static String getLimitClause(long limit, long offset)
