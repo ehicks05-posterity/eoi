@@ -191,7 +191,7 @@ public class SQLGenerator
         if (indexOfHaving != -1)
             query = query.substring(0, indexOfHaving);
 
-        return "select count_estimate('select 1 " + query.replaceAll("'", "''") + "')";
+        return "select count_estimate('select 1 " + query.trim().replaceAll("'", "''") + "')";
     }
 
     public static String getLimitClause(long limit, long offset)
