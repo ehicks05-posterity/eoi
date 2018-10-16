@@ -18,9 +18,14 @@ class Diagnostic
     @BeforeAll
     static void init() throws IOException
     {
-        ConnectionInfo connectionInfo = new ConnectionInfo(ConnectionInfo.DbMode.H2_MEM.toString(), "", "", "test",
-                "", "", "2097152", "", "");
-
+        ConnectionInfo connectionInfo;
+        if (false)
+            connectionInfo = new ConnectionInfo(ConnectionInfo.DbMode.POSTGRESQL.toString(), "localhost", "5432", "eoi",
+                "postgres", "password", "", "", "");
+        else
+            connectionInfo = new ConnectionInfo(ConnectionInfo.DbMode.H2_MEM.toString(), "", "", "test",
+                    "", "", "2097152", "", "");
+        
         EOI.init(connectionInfo);
         EOI.setSlowQueryThreshold(1);
 

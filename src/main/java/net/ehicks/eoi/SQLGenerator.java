@@ -158,42 +158,6 @@ public class SQLGenerator
         return "select count(*) " + query;
     }
 
-    /*  Relies on existence of this postgres function:
-        todo: autocreate this function
-
-        CREATE FUNCTION count_estimate(query text) RETURNS integer AS $$
-        DECLARE
-          rec   record;
-          rows  integer;
-        BEGIN
-          FOR rec IN EXECUTE 'EXPLAIN ' || query LOOP
-            rows := substring(rec."QUERY PLAN" FROM ' rows=([[:digit:]]+)');
-            EXIT WHEN rows IS NOT NULL;
-          END LOOP;
-          RETURN rows;
-        END;
-        $$ LANGUAGE plpgsql VOLATILE STRICT;
-     */
-    public static String getEstimatedCountVersionOfQuery(String query)
-    {
-        int indexOfFrom = query.indexOf("from");
-        query = query.substring(indexOfFrom);
-
-        int indexOfOrderBy = query.indexOf("order by");
-        if (indexOfOrderBy != -1)
-            query = query.substring(0, indexOfOrderBy);
-
-        int indexOfGroupBy = query.indexOf("group by");
-        if (indexOfGroupBy != -1)
-            query = query.substring(0, indexOfGroupBy);
-
-        int indexOfHaving = query.indexOf(" having ");
-        if (indexOfHaving != -1)
-            query = query.substring(0, indexOfHaving);
-
-        return "select count_estimate('select 1 " + query.trim().replaceAll("'", "''") + "')";
-    }
-
     public static String getLimitClause(long limit, long offset)
     {
         String limitString = limit > 0 ? String.valueOf(limit) : "";

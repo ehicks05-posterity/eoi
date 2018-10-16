@@ -35,10 +35,10 @@ public class Audit implements Serializable
     @Column(name = "field_name")
     private String fieldName = "";
 
-    @Column(name = "old_value")
+    @Column(name = "old_value", length = 32000)
     private String oldValue = "";
 
-    @Column(name = "new_value")
+    @Column(name = "new_value", length = 32000)
     private String newValue = "";
 
     @Override
