@@ -33,8 +33,8 @@ dependencies {
 
 idea{
     project {
-        targetCompatibility = '10'
-        sourceCompatibility = '10'
+        targetCompatibility = '1.8'
+        sourceCompatibility = '1.8'
     }
     module {
         downloadJavadoc = true // defaults to false
