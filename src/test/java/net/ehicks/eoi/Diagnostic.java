@@ -41,7 +41,7 @@ class Diagnostic
     }
 
     @Test
-    void mainDiagnostic() throws IOException
+    void mainDiagnostic()
     {
         AuditUser auditUser = new AuditUser()
         {
