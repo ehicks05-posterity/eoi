@@ -3,9 +3,8 @@ package net.ehicks.eoi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 public class EOIBackup
@@ -51,14 +50,17 @@ public class EOIBackup
             try
             {
                 Process process = builder.start();
+                OutputStream processIn = process.getOutputStream();
+                InputStream processOut = process.getInputStream();
 
                 new Thread(() -> {
                     try
                     {
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                        String line;
-                        while ((line = reader.readLine()) != null)
-                            log.info(line);
+                        byte[] bytes = new byte[4096];
+                        while (processOut.read(bytes) != -1)
+                        {
+                            log.info(new String(bytes, Charset.forName("UTF-8")));
+                        }
                     }
                     catch (IOException e)
                     {

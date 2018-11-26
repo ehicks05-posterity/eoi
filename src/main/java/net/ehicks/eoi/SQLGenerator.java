@@ -118,7 +118,7 @@ public class SQLGenerator
             Object columnValue = null;
             try
             {
-                columnValue = pkField.getGetter().invoke(object, null);
+                columnValue = pkField.getGetter().invoke(object);
             }
             catch (IllegalAccessException | InvocationTargetException e)
             {
